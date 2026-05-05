@@ -30,7 +30,7 @@ function App() {
         <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
         {/* Rota para sala de espera */}
         <Route path="/waitingroom/:code" element={<WaitingRoom />} />
-        <Route path="/gerente-quiz" element={<GerenteQuizTime />} />
+        <Route path="/gerente-quiz/:companyId" element={<GerenteQuizTime />} />
         <Route path="/config/:companyId" element={<CompanyConfigRoom />} />
         <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
         <Route path="/ranking" element={<GerenteRanking />} />
