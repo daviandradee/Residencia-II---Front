@@ -238,7 +238,7 @@ useEffect(() => {
   return (
     <div className="config-container">
       {/* Sidebar */}
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Painel de Estratégia</h1>
           <span className="config-title-accent" />

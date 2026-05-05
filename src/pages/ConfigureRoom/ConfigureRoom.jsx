@@ -254,7 +254,7 @@ const ConfiguracaoSala = () => {
 
   return (
     <div className="config-container">
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Configuração<br />da Sala</h1>
           <span className="config-title-accent" />

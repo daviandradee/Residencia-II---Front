@@ -94,7 +94,7 @@ const GerenteRanking = () => {
   return (
     <div className="config-container">
       {/* Sidebar */}
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Ranking<br />da Rodada</h1>
           <span className="config-title-accent" />

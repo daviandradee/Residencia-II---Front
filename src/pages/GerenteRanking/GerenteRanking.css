@@ -1,5 +1,17 @@
 /* GerenteRanking.css — Estilos exclusivos da tela de ranking do gerente */
 
+/* Sidebar desta tela sem rolagem própria */
+.config-sidebar.config-sidebar-static {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .config-sidebar.config-sidebar-static {
+    height: auto;
+  }
+}
+
 /* ── Ranking table (5 colunas) ── */
 .gr-ranking-header,
 .gr-ranking-row {

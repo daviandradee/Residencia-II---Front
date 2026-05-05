@@ -1,5 +1,17 @@
 /* ConfigureRoom.css — Estilos exclusivos da página de criação de sala */
 
+/* Sidebar desta tela sem rolagem própria */
+.config-sidebar.config-sidebar-static {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .config-sidebar.config-sidebar-static {
+    height: auto;
+  }
+}
+
 /* Botão Voltar */
 .back-button {
   display: inline-flex;
