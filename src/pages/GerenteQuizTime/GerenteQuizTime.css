@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: var(--color-background-light);
+  background: linear-gradient(90deg, var(--color-primary-blue), var(--color-action-orange));
 }
 
 .quiztime-card {
@@ -26,7 +26,6 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary-blue), var(--color-action-orange));
 }
 
 .quiztime-hero,
