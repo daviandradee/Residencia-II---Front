@@ -180,7 +180,7 @@ const ConfiguracaoSala = () => {
   const handleAddEvent = () => {
     setEvents((prev) => [
       ...prev,
-      { round: 1, type: 'EQUIPMENT_FAILURE', description: '' },
+      { round: 1, type: 'SEGURANCA', description: '' },
     ]);
   };
 
@@ -254,7 +254,7 @@ const ConfiguracaoSala = () => {
 
   return (
     <div className="config-container">
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Configuração<br />da Sala</h1>
           <span className="config-title-accent" />
@@ -502,9 +502,12 @@ const ConfiguracaoSala = () => {
                       onChange={(e) => handleEventChange(index, 'type', e.target.value)}
                       className="event-select"
                     >
-                      <option value="EQUIPMENT_FAILURE">Falha de Equipamento</option>
-                      <option value="SYSTEM_FAILURE">Falha de Sistema</option>
-                      <option value="OTHER">Outro</option>
+                      <option value="SEGURANCA">Segurança</option>
+                      <option value="BALANCA_FREEZER">Balança/Freezer</option>
+                      <option value="REDES">Redes</option>
+                      <option value="SITE">Site</option>
+                      <option value="SELF_CHECKOUT">Self Checkout</option>
+                      <option value="MELHORIA_CONTINUA">Melhoria Contínua</option>
                     </select>
                   </div>
                   <div>

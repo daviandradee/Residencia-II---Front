@@ -1,5 +1,17 @@
 /* CompanyConfigRoom.css — Estilos exclusivos da página de config da empresa */
 
+/* Sidebar desta tela sem rolagem própria */
+.config-sidebar.config-sidebar-static {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .config-sidebar.config-sidebar-static {
+    height: auto;
+  }
+}
+
 /* ── Card de saldo no sidebar ── */
 .balance-card {
   position: relative;

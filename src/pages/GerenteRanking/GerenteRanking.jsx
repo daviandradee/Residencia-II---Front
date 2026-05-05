@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import '../../index.css';
 import '../../assets/css/RoomConfig.css';
 import './GerenteRanking.css';
 import { io } from 'socket.io-client';
 import Modal from '../../components/Modal';
 import GraficoVendas from '../../components/GraficoVendas';
+
+console.log('Renderizando GerenteRanking')
 
 const GerenteRanking = () => {
   const companyId = localStorage.getItem('companyId');
@@ -36,7 +37,7 @@ const GerenteRanking = () => {
         console.error(err);
         setLoading(false);
       });
-  }, [roomCode, roundAtual]);
+  }, [roomCode, roundAtual, companyId]);
 
   // Socket para atualizações em tempo real
   useEffect(() => {
@@ -66,17 +67,39 @@ const GerenteRanking = () => {
     return v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
   };
 
+  const EVENTO_LABELS = {
+    SEGURANCA: 'Segurança',
+    BALANCA_FREEZER: 'Balança/Freezer',
+    REDES: 'Redes',
+    SITE: 'Site',
+    SELF_CHECKOUT: 'Self-checkout',
+    MELHORIA_CONTINUA: 'Melhoria contínua',
+    EQUIPMENT_FAILURE: 'Falha de equipamento',
+    SYSTEM_FAILURE: 'Falha de sistema',
+    OTHER: 'Outros',
+  };
+
+  const formatarEvento = (evento) => EVENTO_LABELS[evento] || evento;
+
+  const houvePenalidade = (meuResultado?.diasSemVenda || 0) > 0;
+  const textoPenalidade = houvePenalidade ? 'Sim' : 'Não';
+  const classePenalidade = houvePenalidade ? 'gr-stat-value-danger' : 'gr-stat-value-ok';
+  const eventos = meuResultado?.eventosAplicados?.map(formatarEvento).join(', ') || '';
+  const valorPenalidade = meuResultado?.valorPenalidade || 0;
+
+  console.log('Meu Resultado:', meuResultado);
+  console.log('Resultado Completo:', resultado);
 
 
   return (
     <div className="config-container">
       {/* Sidebar */}
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Ranking<br />da Rodada</h1>
           <span className="config-title-accent" />
           <p className="config-subtitle">
-            Veja sua posicao e compare com as outras empresas.
+            Veja sua posição e compare com as outras empresas.
           </p>
         </div>
 
@@ -88,7 +111,7 @@ const GerenteRanking = () => {
             </div>
 
             <div className="dash-info-card">
-              <span className="dash-info-label">Sua Colocacao</span>
+              <span className="dash-info-label">Sua Colocação</span>
               <strong className="dash-info-value ranking-position">
                 {resultado.findIndex(e => e.company?.id === companyId) + 1}° lugar
               </strong>
@@ -119,14 +142,14 @@ const GerenteRanking = () => {
             <h3 className="section-subtitle">Ranking Geral — Rodada {roundAtual}</h3>
             <div className="dash-table">
               <div className="dash-table-header gr-ranking-header">
-                <span>Colocacao</span>
+                <span>Colocação</span>
                 <span>Empresa</span>
                 <span>Gerente</span>
                 <span className="dash-center">Receita Total</span>
                 <span className="dash-center">Pontos</span>
               </div>
               {resultado.length === 0 && !loading && (
-                <div className="dash-table-empty">Nenhum resultado disponivel.</div>
+                <div className="dash-table-empty">Nenhum resultado disponível.</div>
               )}
               {resultado.map((emp, index) => {
                 const isMe = emp.companyId === companyId;
@@ -138,7 +161,7 @@ const GerenteRanking = () => {
                     <span className="dash-position">{index + 1}°</span>
                     <span className="dash-empresa-name">
                       {emp.company?.name || `Empresa ${index + 1}`}
-                      {isMe && <span className="gr-badge-me">Voce</span>}
+                      {isMe && <span className="gr-badge-me">Você</span>}
                     </span>
                     <span>{emp.company?.managerName || '—'}</span>
                     <span className="dash-center dash-total-score">
@@ -160,7 +183,7 @@ const GerenteRanking = () => {
               <h3 className="section-subtitle">Seus Resultados</h3>
               <div className="gr-stats-grid">
                 <div className="gr-stat-card">
-                  <span className="gr-stat-label">Preco Medio da Cesta</span>
+                  <span className="gr-stat-label">Preço Médio da Cesta</span>
                   <strong className="gr-stat-value">{fmt(meuResultado.precoMedioCesta)}</strong>
                 </div>
 
@@ -179,27 +202,42 @@ const GerenteRanking = () => {
                   <strong className="gr-stat-value">{fmtPercent((meuResultado.percentualDemanda || 0) * 100)}</strong>
                 </div>
 
-                <div className="gr-stat-card">
-                  <span className="gr-stat-label">Receita Bruta</span>
+                 <div className="gr-stat-card">
+                  <span className="gr-stat-label">Receita Antes do Impacto</span>
                   <strong className="gr-stat-value">{fmt(meuResultado.receitaBruta)}</strong>
                 </div>
 
-                <div className="gr-stat-card">
-                  <span className="gr-stat-label">Penalidade</span>
-                  <strong
-                    className="gr-stat-value"
-                    style={{ color: (meuResultado.valorPenalidade || 0) > 0 ? '#e74c3c' : 'var(--color-primary-blue)' }}
-                  >
-                    {fmt(meuResultado.valorPenalidade)}
+                <div className={`gr-stat-card ${houvePenalidade ? 'gr-stat-card-alert' : ''}`}>
+                  <span className="gr-stat-label">Houve Penalidade?</span>
+                  <strong className={`gr-stat-value ${classePenalidade}`}>
+                    {textoPenalidade}
                   </strong>
                 </div>
 
-                <div className="gr-stat-card">
-                  <span className="gr-stat-label">Penalidade (%)</span>
-                  <strong
-                    className="gr-stat-value"
-                    style={{ color: (meuResultado.percentualPenalidade || 0) > 0 ? '#e74c3c' : 'var(--color-primary-blue)' }}
-                  >
+                {houvePenalidade && (
+                  <div className="gr-stat-card gr-stat-card-alert">
+                    <span className="gr-stat-label">Dias sem venda</span>
+                    <strong className="gr-stat-value gr-stat-value-danger">{meuResultado.diasSemVenda}</strong>
+                  </div>
+                )}
+                {houvePenalidade && (
+                  <div className="gr-stat-card gr-stat-card-alert">
+                    <span className="gr-stat-label">Valor da Penalidade</span>
+                    <strong className="gr-stat-value gr-stat-value-danger">
+                      {valorPenalidade.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </strong>
+                  </div>
+                )}
+                {houvePenalidade && eventos && (
+                  <div className="gr-stat-card gr-stat-card-alert">
+                    <span className="gr-stat-label">Evento(s) Aplicado(s)</span>
+                    <strong className="gr-stat-value gr-stat-value-danger">{eventos}</strong>
+                  </div>
+                )}
+
+                <div className={`gr-stat-card ${houvePenalidade ? 'gr-stat-card-alert' : ''}`}>
+                  <span className="gr-stat-label">Redução Aplicada</span>
+                  <strong className={`gr-stat-value ${classePenalidade}`}>
                     {fmtPercent(meuResultado.percentualPenalidade)}
                   </strong>
                 </div>

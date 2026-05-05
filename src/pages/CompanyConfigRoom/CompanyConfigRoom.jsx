@@ -76,7 +76,7 @@ const CompanyConfigRoom = () => {
     disponibilidadeMercearia: 100,
     disponibilidadeEletro: 100,
     disponibilidadeHipel: 100,
-    operadoresCaixa: 0,
+    operadoresVenda: 0,
     operadoresServico: 0,
     capexSegurancaValor: false,
     capexBalancaValor: false,
@@ -170,7 +170,7 @@ useEffect(() => {
     formData.estoqueEletro * configRoom.custoUntEletro +
     formData.estoqueHipel * configRoom.custoUntHipel;
 
-  const custoPessoal = (formData.operadoresCaixa + formData.operadoresServico) * params.custoPorOperador;
+  const custoPessoal = (formData.operadoresVenda + formData.operadoresServico) * params.custoPorOperador;
   const totalGastos = totalCapex + custoEstoque + custoPessoal;
   const saldoRestante = params.saldoInicial - totalGastos;
   const excedente = Math.max(0, -saldoRestante);
@@ -202,7 +202,6 @@ useEffect(() => {
     capexSite: data.capexSiteValor,
     capexSelfCheckout: data.capexSelfCheckoutValor,
     capexMelhoriaContinua: data.capexMelhoriaContinuaValor,
-    // capexFreezer: data.capexFreezerValor, // só se o backend aceitar esse campo!
   });
 
   const handleSave = async () => {
@@ -239,7 +238,7 @@ useEffect(() => {
   return (
     <div className="config-container">
       {/* Sidebar */}
-      <aside className="config-sidebar">
+      <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
           <h1 className="config-title">Painel de Estratégia</h1>
           <span className="config-title-accent" />
@@ -315,9 +314,9 @@ useEffect(() => {
             <p className="section-hint">Custo: {fmt(params.custoPorOperador)} por operador</p>
             <div className="input-grid">
               <div className="input-group">
-                <label htmlFor="operadoresCaixa">Operadores de Caixa</label>
-                <input id="operadoresCaixa" name="operadoresCaixa" type="number" min="0"
-                  value={formData.operadoresCaixa} onChange={handleChange} />
+                <label htmlFor="operadoresVenda">Operadores de Caixa</label>
+                <input id="operadoresVenda" name="operadoresVenda" type="number" min="0"
+                  value={formData.operadoresVenda} onChange={handleChange} />
               </div>
               <div className="input-group">
                 <label htmlFor="operadoresServico">Operadores de Serviço</label>

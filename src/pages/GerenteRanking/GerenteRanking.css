@@ -1,5 +1,17 @@
 /* GerenteRanking.css — Estilos exclusivos da tela de ranking do gerente */
 
+/* Sidebar desta tela sem rolagem própria */
+.config-sidebar.config-sidebar-static {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .config-sidebar.config-sidebar-static {
+    height: auto;
+  }
+}
+
 /* ── Ranking table (5 colunas) ── */
 .gr-ranking-header,
 .gr-ranking-row {
@@ -46,6 +58,19 @@
 .gr-stat-card:hover {
   border-color: rgba(11, 90, 151, 0.2);
   box-shadow: 0 4px 12px rgba(11, 90, 151, 0.06);
+}
+
+.gr-stat-card-alert {
+  border-color: color-mix(in srgb, var(--color-leave-room-red) 28%, var(--color-border));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-leave-room-red) 10%, transparent);
+}
+
+.gr-stat-value-ok {
+  color: var(--color-primary-blue);
+}
+
+.gr-stat-value-danger {
+  color: var(--color-leave-room-red);
 }
 
 .gr-stat-label {
