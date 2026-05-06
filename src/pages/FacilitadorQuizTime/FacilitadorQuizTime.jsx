@@ -39,7 +39,7 @@ const FacilitadorQuizTime = () => {
         socket.on('quiz_finish', () => console.log('quiz_finish recebido!'))
 
         return () => socket.disconnect()
-    }, [code, facilitadorToken, myCompanyId, navigate])
+    }, [code, facilitadorToken,  navigate])
 
 
     const handleAcertosChange = (companyId, value) => {
