@@ -16,10 +16,6 @@ const GerenteQuizTime = () => {
                     <p>Hora de colocar o conhecimento em prática! O facilitador separou perguntas especiais para você.</p>
                 </div>
                 <div className="quiztime-details">
-                    <div className="quiztime-info-card">
-                        <span className="quiztime-label">Empresa</span>
-                        <strong>{companyName}</strong>
-                    </div>
                     <div className="quiztime-info-card quiztime-info-highlight">
                         <span className="quiztime-label">Próxima etapa</span>
                         <strong>Configuração da empresa</strong>

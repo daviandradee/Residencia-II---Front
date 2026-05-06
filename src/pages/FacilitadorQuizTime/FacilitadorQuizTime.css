@@ -100,7 +100,7 @@
 .facilitador-quiz-company-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .facilitador-quiz-company-number {
@@ -109,17 +109,31 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
   background: var(--color-primary-blue);
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
   font-size: 0.9rem;
-  font-weight: 600;
-  color: #ffffff;
+}
+
+/* ✅ NOVO: Container vertical para nome e gerente */
+.facilitador-quiz-company-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .facilitador-quiz-company-name {
-  font-size: 1.05rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-dark);
+  font-size: 0.95rem;
+}
+
+/* ✅ NOVO: Estilo para nome do gerente */
+.facilitador-quiz-company-manager {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
 
