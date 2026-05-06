@@ -19,7 +19,6 @@ const FacilitadorQuizTime = () => {
     const [showModalLeave, setShowModalLeave] = useState(false)
     const [showModalStart, setShowModalStart] = useState(false)
 
-    const myCompanyId = localStorage.getItem('companyId')
     const facilitadorToken = localStorage.getItem('facilitadorToken');
 
     useEffect(() => {
@@ -34,11 +33,7 @@ const FacilitadorQuizTime = () => {
         socket.emit('join_room', code)
 
         socket.on('quiz_finish', () => {
-            if (facilitadorToken === null) {
-                navigate(`/config/${myCompanyId}`)
-            } else {
                 navigate(`/facilitador/${code}`)
-            }
         })
         socket.on('connect', () => console.log('socket conectado, entrando na sala:', code))
         socket.on('quiz_finish', () => console.log('quiz_finish recebido!'))

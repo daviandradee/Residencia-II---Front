@@ -1,11 +1,28 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import '../../index.css';
 import './GerenteQuizTime.css';
+import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 
 const GerenteQuizTime = () => {
-    const { companyId } = useParams();
-    const companyName = localStorage.getItem('companyName') || 'sua empresa';
+    const navigate = useNavigate()
+    const { code } = useParams();
+    const companyId = localStorage.getItem('companyId')
+
+    useEffect(() => {
+            const socket = io(import.meta.env.VITE_API_URL);
+            socket.emit('join_room', code)
+    
+            socket.on('quiz_finish', () => {
+                    navigate(`/config/${companyId}`)
+            })
+            socket.on('connect', () => console.log('socket conectado, entrando na sala:', code))
+            socket.on('quiz_finish', () => console.log('quiz_finish recebido!'))
+    
+            return () => socket.disconnect()
+        }, [companyId, navigate])
 
     return (
         <div className="quiztime-container">
