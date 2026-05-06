@@ -51,7 +51,7 @@ const WaitingRoom = () => {
       if (companyId !== null && facilitadorToken === null) {
         setTimeout(() => {
           showToast('O jogo começou! Redirecionando...', 'success')
-          navigate(`/gerente-quiz/${companyId}`)
+          navigate(`/gerente-quiz/${code}`)
         }, 1500)
       }
     })
