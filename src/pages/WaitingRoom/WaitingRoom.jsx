@@ -48,7 +48,7 @@ const WaitingRoom = () => {
     })
 
     socket.on('game_started', () => {
-      if (companyId !== null) {
+      if (companyId !== null && facilitadorToken === null) {
         setTimeout(() => {
           showToast('O jogo começou! Redirecionando...', 'success')
           navigate(`/gerente-quiz/${companyId}`)
