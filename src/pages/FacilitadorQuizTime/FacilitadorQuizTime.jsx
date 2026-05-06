@@ -8,26 +8,11 @@ import './FacilitadorQuizTime.css';
 const FacilitadorQuizTime = () => {
   const navigate = useNavigate();
   const { code } = useParams();
-
-  const mockCompanies = [
-    { id: '1', name: 'Empresa A' },
-    { id: '2', name: 'Empresa B' },
-    { id: '3', name: 'Empresa C' },
-    { id: '4', name: 'Empresa D' },
-    { id: '4', name: 'Empresa D' },
-    { id: '4', name: 'Empresa D' },
-    { id: '4', name: 'Empresa D' },
-  ];
-
-  // ✅ NOVO: Toggle para usar mock ou real
-  const USE_MOCK = true; // Mude para false para usar dados reais
-
-  const { companies: realCompanies, loading, erro: erroCarregamento } = useCompanies(code);
-  const companies = USE_MOCK ? mockCompanies : realCompanies;
-
   const [acertos, setAcertos] = useState({});
   const [enviando, setEnviando] = useState(false);   
-  const [erro, setErro] = useState('');               
+  const [erro, setErro] = useState('');        
+  const [companies, setCompanies] = useState  ([])  
+
 
   const facilitadorToken = localStorage.getItem('facilitadorToken');
 
@@ -36,17 +21,22 @@ const FacilitadorQuizTime = () => {
 
   useEffect(() => {
     const socket = io(import.meta.env.VITE_API_URL);
+        socket.on('game_started', () => {
+      if (companyId !== null) {
+        setTimeout(() => {
+          showToast('O jogo começou! Redirecionando...', 'success')
+          navigate(`/gerente-quiz/${companyId}`)
+        }, 1500)
+      }
+    })
 
-    socket.emit('join_room', code);
 
-    socket.on('all_companies_confirmed', () => {
-      navigate(`/facilitador/${code}`);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [code, navigate]);
+    fetch(`${import.meta.env.VITE_API_URL}/companies/XF83D8`)
+      .then(res => res.json())
+      .then(data => setCompanies(data))
+      .catch(err => console.error('Erro ao buscar empresas:', err))
+    })
+    console.log(companies)
 
  
   const handleAcertosChange = (companyId, value) => {
@@ -111,9 +101,12 @@ const FacilitadorQuizTime = () => {
             {companies.map((company, index) => (
               <div key={company.id} className="facilitador-quiz-company-row">
                 <div className="facilitador-quiz-company-info">
-                  <span className="facilitador-quiz-company-number">{index + 1}</span>
-                  <span className="facilitador-quiz-company-name">{company.name}</span>
-                </div>
+  <span className="facilitador-quiz-company-number">{index + 1}</span>
+  <div className="facilitador-quiz-company-details">
+    <span className="facilitador-quiz-company-name">{company.name}</span>
+    <span className="facilitador-quiz-company-manager">{company.managerName}</span>
+  </div>
+</div>
                 <div className="facilitador-quiz-input-wrapper">
                   <label htmlFor={`acertos-${company.id}`}>Acertos:</label>
                   <input

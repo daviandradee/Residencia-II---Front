@@ -1,23 +1,21 @@
-import React, { useEffect, useState } from 'react'
-import { data, useNavigate, useParams } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import '../../index.css'
 import './WaitingRoom.css'
 import Modal from '../../components/Modal'
 import { useToast } from '../../components/Toast.jsx'
 
-
-
 const WaitingRoom = () => {
   const navigate = useNavigate()
   const { code } = useParams()
   const { showToast } = useToast()
+  const socketRef = useRef(null)
 
   const role = localStorage.getItem('role')
   const companyId = localStorage.getItem('companyId')
   const facilitadorToken = localStorage.getItem('facilitadorToken')
   const roomCode = code
-  
 
   const [companies, setCompanies] = useState([])
   const [connected, setConnected] = useState(false)
@@ -29,14 +27,25 @@ const WaitingRoom = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [showModalLeave, setShowModalLeave] = useState(false)
   const [showModalStart, setShowModalStart] = useState(false)
-  //game_started
+
   useEffect(() => {
     const socket = io(import.meta.env.VITE_API_URL)
-    // busca lista inicial de empresas
+    socketRef.current = socket
+
     fetch(`${import.meta.env.VITE_API_URL}/companies/${roomCode}`)
       .then(res => res.json())
       .then(data => setCompanies(data))
       .catch(err => console.error('Erro ao buscar empresas:', err))
+
+    socket.emit('join_room', roomCode)
+    setConnected(true)
+
+    socket.on('connect', () => setConnected(true))
+    socket.on('disconnect', () => setConnected(false))
+
+    socket.on('companies_updated', (updatedCompanies) => {
+      setCompanies(updatedCompanies)
+    })
 
     socket.on('game_started', () => {
       if (companyId !== null) {
@@ -47,51 +56,31 @@ const WaitingRoom = () => {
       }
     })
     socket.on('room_cancelled', () => {
-      if(facilitadorToken === null) {
-      showToast('Sala cancelada pelo facilitador', 'warning')
+      if (facilitadorToken === null) {
+        showToast('Sala cancelada pelo facilitador', 'warning')
       }
       localStorage.clear()
       navigate('/lobby')
     })
-    socket.emit('join_room', roomCode)
-    setConnected(true)
-
-    // escuta atualizações em tempo real
-    socket.on('companies_updated', (updatedCompanies) => {
-      setCompanies(updatedCompanies)
-    })
-    socket.on('all_companies_confirmed', (data) => {
-  if (facilitadorToken) {
-    showToast('Todas as empresas confirmaram! Redirecionando...', 'success')
-    setTimeout(() => {
-      navigate(`/facilitador/${roomCode}`)
-    }, 1500)
-  }
-})
-
-    socket.on('connect', () => setConnected(true))
-    socket.on('disconnect', () => setConnected(false))
-
     return () => {
-      socket.off('companies_updated')
       socket.off('connect')
       socket.off('disconnect')
-      socket.off('room_cancelled')
+      socket.off('companies_updated')
       socket.off('game_started')
-      socket.off('all_companies_confirmed')
+      socket.off('room_cancelled')
+      
+      socket.disconnect()
     }
   }, [roomCode])
 
   const handleStartGame = async () => {
     setIsLoading(true)
-    console.log('facilitadorToken:', facilitadorToken)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}/start`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}/start`, {
         method: 'PATCH',
-        headers: {
-          'x-facilitator-token': `${facilitadorToken}`,
-        },
+        headers: { 'x-facilitator-token': facilitadorToken },
       })
+      navigate(`/facilitador-quiz/${roomCode}`)
     } catch (error) {
       console.error('Erro ao iniciar jogo:', error)
       setShowModalStart(false)
@@ -99,18 +88,14 @@ const WaitingRoom = () => {
       setIsLoading(false)
       setShowModalStart(false)
     }
-    
   }
-
 
   const handleConfirmCancelRoom = async () => {
     setIsLoading(true)
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}/cancel`, {
         method: 'PATCH',
-        headers: {
-          'x-facilitador-token': `${facilitadorToken}`,
-        },
+        headers: { 'x-facilitador-token': facilitadorToken },
       })
       setSuccessMessage('Sala cancelada com sucesso!')
       setTimeout(() => {
@@ -126,7 +111,6 @@ const WaitingRoom = () => {
     }
   }
 
- 
   const handleConfirmLeave = async (e) => {
     setIsLoading(true)
     e.preventDefault()
@@ -134,11 +118,9 @@ const WaitingRoom = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/companies/${companyId}/leave`, {
         method: 'DELETE',
       })
-      console.log('Resposta ao sair da sala:', response)
       if (!response.ok) {
         console.error(`Erro ao sair: ${response.status}`)
       }
-      
       localStorage.clear()
       navigate('/lobby')
     } catch (error) {
@@ -148,15 +130,10 @@ const WaitingRoom = () => {
       setIsLoading(false)
     }
   }
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
 
+  const getInitials = (name) => {
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2)
+  }
 
   return (
     <div className="waiting-container">

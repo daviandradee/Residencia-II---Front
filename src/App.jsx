@@ -30,8 +30,8 @@ function App() {
         <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
         {/* Rota para sala de espera */}
         <Route path="/waitingroom/:code" element={<WaitingRoom />} />
-        <Route path="/gerente-quiz" element={<GerenteQuizTime />} />
-        <Route path="/facilitador-quiz" element={<FacilitadorQuizTime />} />
+        <Route path="/gerente-quiz/:companyId" element={<GerenteQuizTime />} />
+        <Route path="/facilitador-quiz/:code" element={<FacilitadorQuizTime />} />
         <Route path="/config/:companyId" element={<CompanyConfigRoom />} />
         <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
         <Route path="/ranking" element={<GerenteRanking />} />
