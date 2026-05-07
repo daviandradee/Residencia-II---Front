@@ -5,10 +5,12 @@ import '../../index.css';
 import './GerenteQuizTime.css';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/Toast.jsx'
 
 const GerenteQuizTime = () => {
     const navigate = useNavigate()
     const { code } = useParams();
+    const {showToast} = useToast()
     const companyId = localStorage.getItem('companyId')
 
     useEffect(() => {
@@ -16,7 +18,10 @@ const GerenteQuizTime = () => {
             socket.emit('join_room', code)
     
             socket.on('quiz_finish', () => {
+                    setTimeout(() => {
+                    showToast('Quiz encerrado, redirecionando para configuração de gestão', 'success')
                     navigate(`/config/${companyId}`)
+                    },3000)
             })
             socket.on('connect', () => console.log('socket conectado, entrando na sala:', code))
             socket.on('quiz_finish', () => console.log('quiz_finish recebido!'))

@@ -5,6 +5,7 @@ import '../../index.css';
 import Modal from '../../components/Modal'; 
 import './FacilitadorQuizTime.css';
 
+
 const FacilitadorQuizTime = () => {
     const navigate = useNavigate();
     const { code } = useParams();
@@ -31,7 +32,7 @@ const FacilitadorQuizTime = () => {
     useEffect(() => {
         const socket = io(import.meta.env.VITE_API_URL);
         socket.emit('join_room', code)
-
+        
         socket.on('quiz_finish', () => {
                 navigate(`/facilitador/${code}`)
         })
@@ -40,7 +41,6 @@ const FacilitadorQuizTime = () => {
 
         return () => socket.disconnect()
     }, [code, facilitadorToken,  navigate])
-
 
     const handleAcertosChange = (companyId, value) => {
         const numValue = Math.max(0, parseInt(value) || 0);
