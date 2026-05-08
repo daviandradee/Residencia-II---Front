@@ -1,14 +1,20 @@
-import React, { useState, useEffect, use } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import '../../index.css';
 import '../../assets/css/RoomConfig.css';
 import './FacilitadorDashboard.css';
-import { io } from 'socket.io-client'
-import Modal from '../../components/Modal'
+import { io } from 'socket.io-client';
+import Modal from '../../components/Modal';
 import GraficoDemandaEmpresas from '../../components/GraficoDemandaEmpresas';
+import { useToast } from '../../components/Toast.jsx';
 
 const FacilitadorDashboard = () => {
   const { code } = useParams();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const socketRef = useRef(null);
+
+  // ── States de dados ──
   const [configRoom, setConfigRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [warning, setWarning] = useState(false);
@@ -17,11 +23,21 @@ const FacilitadorDashboard = () => {
   const [resultado, setResultado] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [historicoDemanda, setHistoricoDemanda] = useState([]);
-  const facilitadorToken = localStorage.getItem('facilitadorToken')
-  const socket = io(import.meta.env.VITE_API_URL);
-  // Buscar dados da sala
+
+  // ── States de controle de UI ──
+  const [showModalStart, setShowModalStart] = useState(false);
+  const [showModalFinish, setShowModalFinish] = useState(false);
+  const [isLoadingNextRound, setIsLoadingNextRound] = useState(false);
+  const [isLoadingFinish, setIsLoadingFinish] = useState(false);
+  const [companyStatus, setCompanyStatus] = useState([]);   // quem já enviou config
+  const [gameFinished, setGameFinished] = useState(false);
+
+  const facilitadorToken = localStorage.getItem('facilitadorToken');
+
+  // ── Socket.IO — conexão e listeners ──
   useEffect(() => {
     const socket = io(import.meta.env.VITE_API_URL);
+    socketRef.current = socket;
 
     socket.emit('join_room', code);
 
@@ -33,12 +49,50 @@ const FacilitadorDashboard = () => {
       setCompanies(updatedCompanies);
     });
 
+    // Listener para avanço de rodada
+    socket.on('round_advanced', (data) => {
+      console.log('Rodada avançada:', data);
+      setRoundAtual(data.round);
+      setCompanyStatus(data.companyStatus || []);
+      showToast(`Rodada ${data.round} iniciada!`, 'success');
+
+      // Recarrega resultados da nova rodada
+      if (data.round <= data.totalRounds) {
+        carregarResultadoRodada(data.round);
+      }
+    });
+
+    // ── Re-sincronização após reconexão ──
+    socket.on('connect', () => {
+      console.log('Socket reconectado — sincronizando estado...')
+      carregarResultadoRodada(roundAtual)
+    })
+
+    // Listener para fim de jogo
+    socket.on('game_finished', (data) => {
+      console.log('Jogo finalizado');
+      setGameFinished(true);
+      showToast('Jogo finalizado! Redirecionando para resultados...', 'success');
+
+      // Salva dados no localStorage pra tela de resultado
+      localStorage.setItem('resultadoFinal', JSON.stringify(data));
+
+      setTimeout(() => {
+        navigate(`/resultado-final/${code}`);
+      }, 2000);
+    });
+
     return () => {
       socket.off('companies_updated');
       socket.off('connect');
       socket.off('disconnect');
+      socket.off('round_advanced');
+      socket.off('game_finished');
+      socket.disconnect();
     };
   }, [code]);
+
+  // ── Buscar configuração da sala ──
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/rooms/${code}`, {
       method: 'GET',
@@ -53,7 +107,6 @@ const FacilitadorDashboard = () => {
         return response.json();
       })
       .then((data) => {
-        console.log('Dados da sala recebidos:', data);
         setConfigRoom(data);
       })
       .catch((err) => {
@@ -61,74 +114,79 @@ const FacilitadorDashboard = () => {
         setError('Não foi possível carregar os dados da sala. Por favor, tente novamente mais tarde.');
       });
   }, [code]);
-  useEffect(() => {
-    console.log('Buscando dados da sala com código:', code);
+
+  // ── Função reutilizável: carrega resultado de uma rodada específica ──
+  const carregarResultadoRodada = async (rodada) => {
     setLoading(true);
-    fetch(`${import.meta.env.VITE_API_URL}/rooms/${code}/resultado/${roundAtual}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-facilitator-token': `${facilitadorToken}`,
-
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          setWarning(true);
-          setTimeout(() => setWarning(false), 4500);
-          throw new Error('Erro ao buscar dados da sala');
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/rooms/${code}/resultado/${rodada}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-facilitator-token': `${facilitadorToken}`,
+          },
         }
+      );
+      if (!response.ok) {
+        setWarning(true);
+        setTimeout(() => setWarning(false), 4500);
+        throw new Error('Erro ao buscar dados da sala');
+      }
+      const data = await response.json();
+      setResultado(data);
+    } catch (err) {
+      console.error(err);
+      setError('Não foi possível carregar os dados da sala.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Dados da sala recebidos:', data);
-        setResultado(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError('Não foi possível carregar os dados da sala. Por favor, tente novamente mais tarde.');
-        setLoading(false);
-      });
+  // ── Carrega resultado ao mudar de rodada ──
+  useEffect(() => {
+    carregarResultadoRodada(roundAtual);
+  }, [code, roundAtual]);
 
-  }, [code]);
-
-  // NOVO: Buscar histórico de todas as rodadas até a atual para o Gráfico de Evolução
+  // ── Histórico de demanda para o gráfico de evolução ──
   useEffect(() => {
     const carregarHistorico = async () => {
       const novoHistorico = [];
-      
+
       // Faz um loop da rodada 1 até a rodada atual
       for (let r = 1; r <= roundAtual; r++) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${code}/resultado/${r}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-facilitator-token': `${facilitadorToken}`,
-            },
-          });
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/rooms/${code}/resultado/${r}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-facilitator-token': `${facilitadorToken}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const data = await response.json();
-            
+
             // Monta o objeto no formato que o Recharts entende
             const pontoRodada = { rodada: `Rodada ${r}` };
-            
-            data.forEach(empresa => {
+
+            data.forEach((empresa) => {
               const nome = empresa.company?.name || `Empresa ${empresa.id}`;
               const valorDemanda = (empresa.percentualDemanda || 0) * 100;
               pontoRodada[nome] = parseFloat(valorDemanda.toFixed(1));
             });
-            
+
             novoHistorico.push(pontoRodada);
           }
         } catch (err) {
           console.error(`Erro ao buscar histórico da rodada ${r}:`, err);
         }
       }
-      
+
       // Salva o histórico completo no state
       setHistoricoDemanda(novoHistorico);
     };
@@ -136,9 +194,81 @@ const FacilitadorDashboard = () => {
     if (code && facilitadorToken) {
       carregarHistorico();
     }
-  }, [code, roundAtual, facilitadorToken]); 
-  // O array de dependências com roundAtual garante que ele vai atualizar o gráfico toda vez que a rodada passar!
+  }, [code, roundAtual, facilitadorToken]);
 
+  // ── Handler: Próxima Rodada ──
+  const handleNextRound = async () => {
+    setIsLoadingNextRound(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/rooms/${code}/next-round`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-facilitator-token': `${facilitadorToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `Erro ${response.status}`);
+      }
+
+      const data = await response.json();
+      setRoundAtual(data.round);
+      setCompanyStatus(data.companyStatus || []);
+
+      // Se chegou na última rodada, mostra toast especial
+      if (data.round >= data.totalRounds) {
+        showToast('Última rodada! Prepare-se para encerrar.', 'warning');
+      }
+    } catch (error) {
+      console.error('Erro ao avançar rodada:', error);
+      showToast(error.message || 'Erro ao avançar rodada', 'error');
+    } finally {
+      setIsLoadingNextRound(false);
+      setShowModalStart(false);
+    }
+  };
+
+  // ── Handler: Encerrar Jogo ──
+  const handleFinishGame = async () => {
+    setIsLoadingFinish(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/rooms/${code}/finish-game`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-facilitator-token': `${facilitadorToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `Erro ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGameFinished(true);
+
+      // Salva e redireciona
+      localStorage.setItem('resultadoFinal', JSON.stringify(data));
+      navigate(`/resultado-final/${code}`);
+    } catch (error) {
+      console.error('Erro ao encerrar jogo:', error);
+      showToast(error.message || 'Erro ao encerrar jogo', 'error');
+    } finally {
+      setIsLoadingFinish(false);
+      setShowModalFinish(false);
+    }
+  };
+
+  // ── Formatadores ──
   const fmt = (v) => {
     if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00';
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -148,7 +278,6 @@ const FacilitadorDashboard = () => {
     if (v === undefined || v === null || isNaN(v)) return '0%';
     return v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
   };
-
 
   return (
     <div className="config-container">
@@ -174,8 +303,26 @@ const FacilitadorDashboard = () => {
 
         <div className="dash-info-card">
           <span className="dash-info-label">Rodada Atual</span>
-          <strong className="dash-info-value">{roundAtual} / {resultado.totalRounds || '—'}</strong>
+          <strong className="dash-info-value">{roundAtual} / {configRoom?.totalRounds || '—'}</strong>
         </div>
+
+        {/* Status de confirmação das empresas */}
+        {companyStatus.length > 0 && (
+          <div className="dash-info-card dash-status-card">
+            <span className="dash-info-label">Status das Empresas</span>
+            <div className="company-status-list">
+              {companyStatus.map((status) => (
+                <div key={status.companyId} className="company-status-item">
+                  <span className={`status-dot-config ${status.hasConfig ? 'ok' : 'pending'}`} />
+                  <span className="status-name">{status.companyName}</span>
+                  <span className="status-badge">
+                    {status.hasConfig ? '✓ Enviou' : '⏳ Pendente'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Painel principal */}
@@ -295,7 +442,6 @@ const FacilitadorDashboard = () => {
           <section className="config-section">
             <h3 className="section-subtitle">Vendas por Empresa</h3>
             <div className="dash-table">
-
               <div className="dash-table-header dash-vendas-header">
                 <span>Empresa</span>
                 <span className="dash-center">Perecíveis</span>
@@ -320,10 +466,10 @@ const FacilitadorDashboard = () => {
               })}
             </div>
           </section>
+
           <section className="config-section">
             <h3 className="section-subtitle">Receita detalhada por empresa</h3>
             <div className="dash-table">
-
               <div className="dash-table-header dash-vendas-header">
                 <span>Empresa</span>
                 <span className="dash-center">Perecíveis</span>
@@ -348,30 +494,76 @@ const FacilitadorDashboard = () => {
               })}
             </div>
           </section>
-          <div className="waiting-actions">
+
+          {/* ── Botões de Ação do Facilitador ── */}
+          <div className="waiting-actions dash-actions">
             {facilitadorToken && (
-              <button
-                className="btn-start"
-                onClick={() => setShowModalStart(true)}
-                disabled={companies.length === 0}
-              >
-                Próxima rodada
-              </button>
+              <>
+                {/* Botão Encerrar Jogo — sempre visível pro facilitador */}
+                <button
+                  className="btn-finish"
+                  onClick={() => setShowModalFinish(true)}
+                  disabled={isLoadingFinish || isLoadingNextRound || gameFinished}
+                >
+                  {isLoadingFinish ? 'Encerrando...' : 'Encerrar Jogo'}
+                </button>
+
+                {/* Botão Próxima Rodada */}
+                <button
+                  className="btn-start"
+                  onClick={() => setShowModalStart(true)}
+                  disabled={isLoadingNextRound || isLoadingFinish || gameFinished}
+                >
+                  {isLoadingNextRound ? 'Avançando...' : 'Próxima Rodada'}
+                </button>
+              </>
             )}
           </div>
         </div>
       </div>
+
+      {/* Modal de loading ao carregar dados */}
       <Modal
         isOpen={loading}
         type="loading"
         title="Carregando Dashboard"
         message="Aguarde enquanto os dados são carregados..."
       />
+
+      {/* Modal de aviso de erro */}
       <Modal
         isOpen={warning}
         type="warning"
         title="Erro ao Carregar Dados"
         message="Não foi possível carregar os dados da sala. Por favor, tente novamente mais tarde."
+      />
+
+      {/* Modal confirmar Próxima Rodada */}
+      <Modal
+        isOpen={showModalStart}
+        type={isLoadingNextRound ? 'loading' : 'confirm'}
+        title={isLoadingNextRound ? 'Avançando rodada...' : 'Confirmar Avanço'}
+        message={
+          roundAtual >= (configRoom?.totalRounds || 4)
+            ? 'Esta é a última rodada. Ao avançar, o jogo será encerrado. Deseja continuar?'
+            : `Avançar para a rodada ${roundAtual + 1}? Certifique-se de que todos revisaram os resultados.`
+        }
+        confirmText="Sim, avançar"
+        cancelText="Cancelar"
+        onConfirm={handleNextRound}
+        onCancel={() => !isLoadingNextRound && setShowModalStart(false)}
+      />
+
+      {/* Modal confirmar Encerrar Jogo */}
+      <Modal
+        isOpen={showModalFinish}
+        type={isLoadingFinish ? 'loading' : 'warning'}
+        title={isLoadingFinish ? 'Finalizando jogo...' : 'Encerrar Jogo'}
+        message="Tem certeza que deseja encerrar o jogo? Esta ação calculará o ranking final e não poderá ser desfeita."
+        confirmText="Sim, encerrar"
+        cancelText="Cancelar"
+        onConfirm={handleFinishGame}
+        onCancel={() => !isLoadingFinish && setShowModalFinish(false)}
       />
     </div>
   );

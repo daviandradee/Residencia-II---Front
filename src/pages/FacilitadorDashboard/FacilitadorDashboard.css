@@ -185,3 +185,109 @@
     min-width: 600px;
   }
 }
+
+/* ── Status das Empresas no Sidebar ── */
+.dash-status-card {
+  padding: 16px 20px;
+}
+
+.company-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.company-status-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.status-dot-config {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-config.ok {
+  background-color: #27ae60;
+}
+
+.status-dot-config.pending {
+  background-color: #f39c12;
+  animation: pulse 1.5s infinite;
+}
+
+.status-name {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* ── Botões de Ação do Facilitador ── */
+.dash-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 25px;
+}
+
+.btn-finish {
+  background-color: var(--color-leave-room-red, #e74c3c);
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(237, 29, 6, 0.2);
+  transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+}
+
+.btn-finish:hover {
+  background-color: #c0392b;
+}
+
+.btn-finish:active {
+  transform: translateY(1px);
+}
+
+.btn-finish:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animação pulse reutilizada */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* ── Responsividade ── */
+@media (max-width: 900px) {
+  .dash-actions {
+    flex-direction: column;
+  }
+
+  .btn-finish,
+  .btn-start {
+    width: 100%;
+  }
+}
