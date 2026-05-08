@@ -13,6 +13,7 @@ import GerenteQuizTime from './pages/GerenteQuizTime/GerenteQuizTime';
 import FacilitadorQuizTime from './pages/FacilitadorQuizTime/FacilitadorQuizTime';
 import GerenteRanking from './pages/GerenteRanking/GerenteRanking';
 import FacilitadorRanking from './pages/FacilitadorRanking/FacilitadorRanking';
+import ResultadoFinal from './pages/ResultadoFinal/ResultadoFinal';
 
 
 function App() {
@@ -37,6 +38,8 @@ function App() {
         <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
         <Route path="/ranking" element={<GerenteRanking />} />
         <Route path="/ranking-final" element={<FacilitadorRanking />} />
+        {/* Rota para resultado final do jogo */}
+        <Route path="/resultado-final/:code" element={<ResultadoFinal />} />
       </Routes>
     </BrowserRouter>
   );
