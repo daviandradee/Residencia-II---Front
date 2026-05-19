@@ -15,6 +15,16 @@ export async function getCompanySettings(id) {
   return await res.json();
 }
 
+export async function getCompanyLatestConfig(id) {
+  const url = `${API}/companies/${id}/configs/latest`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
 export async function saveCompanySettings(id, formData) {
   const url = `${API}/companies/${id}/configs`;
 

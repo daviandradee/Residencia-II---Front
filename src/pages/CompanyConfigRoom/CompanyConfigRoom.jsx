@@ -1,7 +1,7 @@
 import Modal from '../../components/Modal';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCompanySettings, saveCompanySettings } from '../../services/CompanyService';
+import { getCompanySettings, saveCompanySettings, getCompanyLatestConfig } from '../../services/CompanyService';
 import "../../index.css";
 import '../../assets/css/RoomConfig.css';
 import './CompanyConfigRoom.css';
@@ -11,9 +11,8 @@ import { useNavigate } from 'react-router-dom';
 const CARGOS = ['Serviços', 'Abastecimento', 'Comercial', 'Operacional', 'Gerente'];
 
 const CAPEX_ITEMS = [
-  { key: 'capexSegurancaValor', field: 'capexSegurancaValor', label: 'Segurança', risk: 'Furtos e perdas sem sistema de segurança' },
-  { key: 'balanca', field: 'capexBalancaValor', label: 'Balança', risk: 'Impossibilidade de pesar produtos' },
-  { key: 'freezer', field: 'capexFreezerValor', label: 'Freezer', risk: 'Perda de perecíveis por falta de refrigeração' },
+  { key: 'seguranca', field: 'capexSegurancaValor', label: 'Segurança', risk: 'Furtos e perdas sem sistema de segurança' },
+  { key: 'balancaFreezer', field: 'capexBalancaFreezerValor', label: 'Balança/Freezer', risk: 'Perda de perecíveis e impossibilidade de pesar produtos', costFn: (room) => (room.capexBalancaValor || 0) + (room.capexFreezerValor || 0) },
   { key: 'redes', field: 'capexRedesValor', label: 'Redes', risk: 'Falha de conectividade e sistemas offline' },
   { key: 'site', field: 'capexSiteValor', label: 'Site', risk: 'Sem presença digital e vendas online' },
   { key: 'selfCheckout', field: 'capexSelfCheckoutValor', label: 'Self Checkout', risk: 'Filas maiores e custo operacional elevado' },
@@ -36,8 +35,10 @@ const CompanyConfigRoom = () => {
 
     newSocket.on('all_companies_confirmed', (data) => {
       console.log('Todas as empresas confirmaram!', data);
+      localStorage.setItem('rankingRound', data.round);
       setTimeout(() => {
-        navigate(`/ranking`);}, 2000); 
+        navigate(`/ranking`);
+      }, 2000);
     });
 
     return () => {
@@ -51,6 +52,10 @@ const CompanyConfigRoom = () => {
     saldoInicial: 0, juros: 12, custoPorOperador: 3000,
     custoUntPereciveis: 0, custoUntMercearia: 0, custoUntEletro: 0, custoUntHipel: 0,
     capexItems: [],
+    estoqueAtualPereciveis: 0,
+    estoqueAtualMercearia: 0,
+    estoqueAtualEletro: 0,
+    estoqueAtualHipel: 0,
   });
 
   const [cargos, setCargos] = useState({
@@ -58,6 +63,7 @@ const CompanyConfigRoom = () => {
   });
 
   const [capexSelected, setCapexSelected] = useState([]);
+  const [capexJaComprado, setCapexJaComprado] = useState({});
 
   const [formData, setFormData] = useState({
     margemPereciveis: 15,
@@ -79,8 +85,7 @@ const CompanyConfigRoom = () => {
     operadoresVenda: 0,
     operadoresServico: 0,
     capexSegurancaValor: false,
-    capexBalancaValor: false,
-    capexFreezerValor: false,
+    capexBalancaFreezerValor: false,
     capexRedesValor: false,
     capexSiteValor: false,
     capexSelfCheckoutValor: false,
@@ -141,8 +146,44 @@ const toggleCapex = (key) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getCompanySettings(companyId);
-        setParams(data);
+        const [settings, lastConfig] = await Promise.all([
+          getCompanySettings(companyId),
+          getCompanyLatestConfig(companyId),
+        ]);
+        setParams(settings);
+        if (lastConfig) {
+          // Registra quais capex já foram comprados na rodada anterior
+          setCapexJaComprado({
+            capexSegurancaValor: !!lastConfig.capexSeguranca,
+            capexBalancaFreezerValor: !!lastConfig.capexBalanca,
+            capexRedesValor: !!lastConfig.capexRedes,
+            capexSiteValor: !!lastConfig.capexSite,
+            capexSelfCheckoutValor: !!lastConfig.capexSelfCheckout,
+            capexMelhoriaContinuaValor: !!lastConfig.capexMelhoriaContinua,
+          });
+          setFormData(prev => ({
+            ...prev,
+            // Estoque zerado — nova compra a cada rodada
+            estoquePereciveis: 0,
+            estoqueMercearia: 0,
+            estoqueEletro: 0,
+            estoqueHipel: 0,
+            // Estratégias mantidas
+            margemPereciveis: lastConfig.margemPereciveis ?? prev.margemPereciveis,
+            margemMercearia: lastConfig.margemMercearia ?? prev.margemMercearia,
+            margemEletro: lastConfig.margemEletro ?? prev.margemEletro,
+            margemHipel: lastConfig.margemHipel ?? prev.margemHipel,
+            operadoresVenda: lastConfig.operadoresVenda ?? prev.operadoresVenda,
+            operadoresServico: lastConfig.operadoresServico ?? prev.operadoresServico,
+            // Capex zerado no form — já comprado fica só no capexJaComprado
+            capexSegurancaValor: false,
+            capexBalancaFreezerValor: false,
+            capexRedesValor: false,
+            capexSiteValor: false,
+            capexSelfCheckoutValor: false,
+            capexMelhoriaContinuaValor: false,
+          }));
+        }
       } catch (err) {
         console.error(err);
         setError(err.message || 'Erro ao carregar dados da empresa');
@@ -155,11 +196,12 @@ const toggleCapex = (key) => {
 
   // Cálculos dinâmicos
   const totalCapex = CAPEX_ITEMS.reduce((sum, item) => {
-  // Se o item foi selecionado (true), adiciona o custo
-  const isSelected = formData[item.field];
-  const cost = isSelected ? (configRoom[item.field] || 0) : 0;
-  return sum + cost;
-}, 0);
+    const isSelected = formData[item.field];
+    const jaComprado = capexJaComprado[item.field];
+    const itemCost = item.costFn ? item.costFn(configRoom) : (configRoom[item.field] || 0);
+    const cost = (isSelected && !jaComprado) ? itemCost : 0;
+    return sum + cost;
+  }, 0);
 useEffect(() => {
   console.log('form:', formData);
 }, [formData]);
@@ -197,7 +239,7 @@ useEffect(() => {
   const mapCapexFields = (data) => ({
     ...data,
     capexSeguranca: data.capexSegurancaValor,
-    capexBalanca: data.capexBalancaValor,
+    capexBalanca: data.capexBalancaFreezerValor,
     capexRedes: data.capexRedesValor,
     capexSite: data.capexSiteValor,
     capexSelfCheckout: data.capexSelfCheckoutValor,
@@ -336,97 +378,26 @@ useEffect(() => {
             <h3 className="section-subtitle">Investimentos (CAPEX)</h3>
             <p className="section-hint">Selecione os itens de infraestrutura. Itens não comprados podem gerar incidentes.</p>
             <div className="capex-grid">
-              
-              {/* Segurança */}
-              <div
-                className={`capex-card ${formData.capexSegurancaValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexSegurancaValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexSegurancaValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Segurança</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexSegurancaValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Furtos e perdas sem sistema de segurança</p>
-              </div>
-
-              {/* Balança */}
-              <div
-                className={`capex-card ${formData.capexBalancaValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexBalancaValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexBalancaValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Balança</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexBalancaValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Impossibilidade de pesar produtos</p>
-              </div>
-
-              {/* Freezer */}
-              <div
-                className={`capex-card ${formData.capexFreezerValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexFreezerValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexFreezerValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Freezer</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexFreezerValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Perda de perecíveis por falta de refrigeração</p>
-              </div>
-
-              {/* Redes */}
-              <div
-                className={`capex-card ${formData.capexRedesValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexRedesValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexRedesValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Redes</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexRedesValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Falha de conectividade e sistemas offline</p>
-              </div>
-
-              {/* Site */}
-              <div
-                className={`capex-card ${formData.capexSiteValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexSiteValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexSiteValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Site</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexSiteValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Sem presença digital e vendas online</p>
-              </div>
-
-              {/* Self Checkout */}
-              <div
-                className={`capex-card ${formData.capexSelfCheckoutValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexSelfCheckoutValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexSelfCheckoutValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Self Checkout</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexSelfCheckoutValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Filas maiores e custo operacional elevado</p>
-              </div>
-
-              {/* Melhoria Contínua */}
-              <div
-                className={`capex-card ${formData.capexMelhoriaContinuaValor ? 'selected' : ''}`}
-                onClick={() => toggleCapex('capexMelhoriaContinuaValor')}
-              >
-                <div className="capex-card-header">
-                  <span className="capex-check">{formData.capexMelhoriaContinuaValor ? '✓' : ''}</span>
-                  <strong className="capex-label">Melhoria Contínua</strong>
-                  <span className="capex-cost">{fmt(configRoom.capexMelhoriaContinuaValor || 0)}</span>
-                </div>
-                <p className="capex-risk">⚠ Risco: Processos ineficientes sem otimização</p>
-              </div>
+              {CAPEX_ITEMS.map(item => {
+                const jaComprado = capexJaComprado[item.field];
+                const isSelected = formData[item.field];
+                return (
+                  <div
+                    key={item.key}
+                    className={`capex-card ${isSelected ? 'selected' : ''} ${jaComprado ? 'capex-ja-comprado' : ''}`}
+                    onClick={() => !jaComprado && toggleCapex(item.field)}
+                  >
+                    <div className="capex-card-header">
+                      <span className="capex-check">{jaComprado ? '✓' : isSelected ? '✓' : ''}</span>
+                      <strong className="capex-label">{item.label}</strong>
+                      <span className="capex-cost">
+                        {jaComprado ? 'Já adquirido' : fmt(item.costFn ? item.costFn(configRoom) : (configRoom[item.field] || 0))}
+                      </span>
+                    </div>
+                    <p className="capex-risk">⚠ Risco: {item.risk}</p>
+                  </div>
+                );
+              })}
 
             </div>
             <div className="capex-total">
@@ -440,6 +411,7 @@ useEffect(() => {
               <div className="stock-header">
                 <span>Categoria</span>
                 <span className="stock-center">Custo <br /> Unitário</span>
+                <span className="stock-center">Em <br /> Estoque</span>
                 <span className="stock-center">Disponível</span>
                 <span className="stock-center">Qtd. <br /> Comprar</span>
                 <span className="stock-center">Disponibilidade <br /> (%)</span>
@@ -447,7 +419,6 @@ useEffect(() => {
                 <span className="stock-center">Imposto <br /> (%)</span>
                 <span className="stock-center">Margem <br /> (%)</span>
                 <span className="stock-center">Preço <br /> Venda</span>
-                <span className="stock-center">Disponibilidade <br /> (%)</span>
               </div>
               {[
                 { key: 'Pereciveis', label: 'Perecíveis', custo: configRoom.custoUntPereciveis || 0, imposto: configRoom.impostoPereciveis || 0 },
@@ -458,6 +429,7 @@ useEffect(() => {
                 const qtd = formData[`estoque${cat.key}`];
                 const margem = formData[`margem${cat.key}`];
                 const disponivel = formData[`estoqueDisponivel${cat.key}`];
+                const emEstoque = params[`estoqueAtual${cat.key}`] || 0;
                 const disponibilidade = disponivel > 0 ? (qtd / disponivel) * 100 : 0;
                 const custoTotal = qtd * cat.custo;
                 const precoVenda = cat.custo * (1 + margem / 100);
@@ -465,14 +437,15 @@ useEffect(() => {
                   <div className="stock-row" key={cat.key}>
                     <span className="stock-cat">{cat.label}</span>
                     <span className="stock-center">{fmt(cat.custo)}</span>
+                    <span className="stock-center">{emEstoque.toLocaleString('pt-BR')} un.</span>
                     <span className="stock-center">{disponivel} un.</span>
-                    <input 
-                      name={`estoque${cat.key}`} 
-                      type="text" 
+                    <input
+                      name={`estoque${cat.key}`}
+                      type="text"
                       min="0"
                       max={disponivel}
-                      value={qtd} 
-                      onChange={handleChange} 
+                      value={qtd}
+                      onChange={handleChange}
                       className="stock-input"
                     />
                     <span className="stock-center stock-disponibilidade">
@@ -500,11 +473,12 @@ useEffect(() => {
                 <span></span>
                 <span></span>
                 <span></span>
+                <span></span>
+                <span></span>
                 <span className="stock-center"><strong>{fmt(custoEstoque)}</strong></span>
                 <span></span>
                 <span></span>
                 <span className="stock-price stock-center"><strong>{fmt(precoCesta)}</strong></span>
-                <span></span>
               </div>
             </div>
           </section>

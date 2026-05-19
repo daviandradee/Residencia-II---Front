@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../index.css';
 import '../../assets/css/RoomConfig.css';
 import './GerenteRanking.css';
@@ -10,13 +11,47 @@ console.log('Renderizando GerenteRanking')
 
 const GerenteRanking = () => {
   const companyId = localStorage.getItem('companyId');
+  const navigate = useNavigate();
   const [resultado, setResultado] = useState([]);
   const [ meuResultado, setMeuResultado] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [roundAtual, setRoundAtual] = useState(1);
+  const [roundAtual, setRoundAtual] = useState(() => parseInt(localStorage.getItem('rankingRound')) || 1);
+  const [currentGameRound, setCurrentGameRound] = useState(() => parseInt(localStorage.getItem('rankingRound')) || 1);
+  const [showNextRoundModal, setShowNextRoundModal] = useState(false);
+  const [nextRoundCountdown, setNextRoundCountdown] = useState(5);
+  const [showCalculandoModal, setShowCalculandoModal] = useState(false);
+  const [showRankingFinalModal, setShowRankingFinalModal] = useState(false);
   const roomCode = localStorage.getItem('codeRoom');
 
   
+
+  // Contagem regressiva para redirecionar à config da próxima rodada
+  useEffect(() => {
+    if (!showNextRoundModal) return;
+    setNextRoundCountdown(5);
+    const interval = setInterval(() => {
+      setNextRoundCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          navigate(`/config/${companyId}`);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showNextRoundModal]);
+
+  // Inicializar currentGameRound a partir do servidor
+  useEffect(() => {
+    if (!roomCode) return;
+    fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.currentRound) setCurrentGameRound(data.currentRound);
+      })
+      .catch(() => {});
+  }, [roomCode]);
 
   // Buscar resultado quando tiver roomCode
   useEffect(() => {
@@ -46,12 +81,34 @@ const GerenteRanking = () => {
     const socket = io(import.meta.env.VITE_API_URL);
     socket.emit('join_room', roomCode);
 
-    socket.on('round_updated', (data) => {
-      if (data.round) setRoundAtual(data.round);
+    socket.on('round_advanced', (data) => {
+      setCurrentGameRound(data.round);
+      if (data.round <= 2) {
+        setShowNextRoundModal(true);
+      } else {
+        setShowCalculandoModal(true);
+        setTimeout(() => setShowCalculandoModal(false), 3000);
+      }
+      // Não atualiza roundAtual aqui — resultados ainda não existem para a nova rodada
+    });
+
+    socket.on('all_companies_confirmed', (data) => {
+      localStorage.setItem('rankingRound', data.round);
+      setRoundAtual(data.round);
+      setCurrentGameRound(data.round);
+    });
+
+    socket.on('game_finished', () => {
+      setShowRankingFinalModal(true);
+      setTimeout(() => {
+        navigate(`/ranking-final`);
+      }, 3000);
     });
 
     return () => {
-      socket.off('round_updated');
+      socket.off('round_advanced');
+      socket.off('all_companies_confirmed');
+      socket.off('game_finished');
       socket.off('connect');
       socket.off('disconnect');
     };
@@ -119,7 +176,7 @@ const GerenteRanking = () => {
 
             <div className="dash-info-card">
               <span className="dash-info-label">Rodada</span>
-              <strong className="dash-info-value">{roundAtual}</strong>
+              <strong className="dash-info-value">{currentGameRound}</strong>
             </div>
 
             <div className="dash-info-card">
@@ -139,7 +196,7 @@ const GerenteRanking = () => {
         <div className="config-content">
           {/* Ranking */}
           <section className="config-section">
-            <h3 className="section-subtitle">Ranking Geral — Rodada {roundAtual}</h3>
+            <h3 className="section-subtitle">Ranking Geral — Rodada {currentGameRound}</h3>
             <div className="dash-table">
               <div className="dash-table-header gr-ranking-header">
                 <span>Colocação</span>
@@ -290,6 +347,32 @@ const GerenteRanking = () => {
         type="loading"
         title="Carregando Ranking"
         message="Aguarde enquanto os dados sao carregados..."
+      />
+
+      <Modal
+        isOpen={showCalculandoModal}
+        type="loading"
+        title="Calculando próxima rodada"
+        message="Aguarde enquanto os resultados são processados..."
+      />
+
+      <Modal
+        isOpen={showRankingFinalModal}
+        type="loading"
+        title="Calculando ranking final"
+        message="Processando os resultados finais. Você será redirecionado em instantes..."
+      />
+
+      <Modal
+        isOpen={showNextRoundModal}
+        type="confirm"
+        title="Nova rodada abriu!"
+        message={`Você ganhou uma chance de editar sua configuração. Redirecionando em ${nextRoundCountdown}s...`}
+        confirmText="Ir agora"
+        onConfirm={() => {
+          setShowNextRoundModal(false);
+          navigate(`/config/${companyId}`);
+        }}
       />
     </div>
   );
