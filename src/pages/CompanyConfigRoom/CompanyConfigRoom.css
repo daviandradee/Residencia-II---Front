@@ -135,6 +135,23 @@
   box-shadow: 0 2px 12px rgba(255, 105, 10, 0.12);
 }
 
+.capex-card.capex-ja-comprado {
+  opacity: 0.5;
+  cursor: default;
+  border-color: var(--color-border);
+  background: var(--color-card-white);
+}
+
+.capex-card.capex-ja-comprado:hover {
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.capex-card.capex-ja-comprado .capex-check {
+  background: #aaa;
+  border-color: #aaa;
+}
+
 .capex-card-header {
   display: flex;
   align-items: center;

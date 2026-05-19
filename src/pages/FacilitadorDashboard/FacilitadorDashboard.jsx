@@ -29,10 +29,15 @@ const FacilitadorDashboard = () => {
   const [showModalFinish, setShowModalFinish] = useState(false);
   const [isLoadingNextRound, setIsLoadingNextRound] = useState(false);
   const [isLoadingFinish, setIsLoadingFinish] = useState(false);
-  const [companyStatus, setCompanyStatus] = useState([]);   // quem já enviou config
+  const [configuredCompanyIds, setConfiguredCompanyIds] = useState(new Set());
   const [gameFinished, setGameFinished] = useState(false);
 
   const facilitadorToken = localStorage.getItem('facilitadorToken');
+  const roundAtualRef = useRef(roundAtual);
+
+  useEffect(() => {
+    roundAtualRef.current = roundAtual;
+  }, [roundAtual]);
 
   // ── Socket.IO — conexão e listeners ──
   useEffect(() => {
@@ -49,11 +54,20 @@ const FacilitadorDashboard = () => {
       setCompanies(updatedCompanies);
     });
 
+    socket.on('company_config_saved', (data) => {
+      setConfiguredCompanyIds(prev => new Set([...prev, data.companyId]));
+    });
+
+    socket.on('all_companies_confirmed', (data) => {
+      showToast(`Todas as empresas confirmaram a rodada ${data.round}! Calculando ranking...`, 'success');
+      carregarResultadoRodada(data.round);
+    });
+
     // Listener para avanço de rodada
     socket.on('round_advanced', (data) => {
       console.log('Rodada avançada:', data);
       setRoundAtual(data.round);
-      setCompanyStatus(data.companyStatus || []);
+      setConfiguredCompanyIds(new Set());
       showToast(`Rodada ${data.round} iniciada!`, 'success');
 
       // Recarrega resultados da nova rodada
@@ -65,7 +79,7 @@ const FacilitadorDashboard = () => {
     // ── Re-sincronização após reconexão ──
     socket.on('connect', () => {
       console.log('Socket reconectado — sincronizando estado...')
-      carregarResultadoRodada(roundAtual)
+      carregarResultadoRodada(roundAtualRef.current)
     })
 
     // Listener para fim de jogo
@@ -78,12 +92,14 @@ const FacilitadorDashboard = () => {
       localStorage.setItem('resultadoFinal', JSON.stringify(data));
 
       setTimeout(() => {
-        navigate(`/resultado-final/${code}`);
+        navigate('/ranking-final');
       }, 2000);
     });
 
     return () => {
       socket.off('companies_updated');
+      socket.off('company_config_saved');
+      socket.off('all_companies_confirmed');
       socket.off('connect');
       socket.off('disconnect');
       socket.off('round_advanced');
@@ -108,6 +124,8 @@ const FacilitadorDashboard = () => {
       })
       .then((data) => {
         setConfigRoom(data);
+        if (data.companies) setCompanies(data.companies);
+        if (data.currentRound) setRoundAtual(data.currentRound);
       })
       .catch((err) => {
         console.error(err);
@@ -217,11 +235,8 @@ const FacilitadorDashboard = () => {
       }
 
       const data = await response.json();
-      setRoundAtual(data.round);
-      setCompanyStatus(data.companyStatus || []);
-
-      // Se chegou na última rodada, mostra toast especial
-      if (data.round >= data.totalRounds) {
+      // roundAtual e configuredCompanyIds são atualizados pelo socket 'round_advanced'
+      if (data.room?.currentRound >= data.room?.totalRounds) {
         showToast('Última rodada! Prepare-se para encerrar.', 'warning');
       }
     } catch (error) {
@@ -258,7 +273,7 @@ const FacilitadorDashboard = () => {
 
       // Salva e redireciona
       localStorage.setItem('resultadoFinal', JSON.stringify(data));
-      navigate(`/resultado-final/${code}`);
+      navigate('/ranking-final');
     } catch (error) {
       console.error('Erro ao encerrar jogo:', error);
       showToast(error.message || 'Erro ao encerrar jogo', 'error');
@@ -307,19 +322,24 @@ const FacilitadorDashboard = () => {
         </div>
 
         {/* Status de confirmação das empresas */}
-        {companyStatus.length > 0 && (
+        {companies.length > 0 && (
           <div className="dash-info-card dash-status-card">
-            <span className="dash-info-label">Status das Empresas</span>
+            <span className="dash-info-label">
+              Status das Empresas ({configuredCompanyIds.size}/{companies.length})
+            </span>
             <div className="company-status-list">
-              {companyStatus.map((status) => (
-                <div key={status.companyId} className="company-status-item">
-                  <span className={`status-dot-config ${status.hasConfig ? 'ok' : 'pending'}`} />
-                  <span className="status-name">{status.companyName}</span>
-                  <span className="status-badge">
-                    {status.hasConfig ? '✓ Enviou' : '⏳ Pendente'}
-                  </span>
-                </div>
-              ))}
+              {companies.map((company) => {
+                const confirmou = configuredCompanyIds.has(company.id);
+                return (
+                  <div key={company.id} className="company-status-item">
+                    <span className={`status-dot-config ${confirmou ? 'ok' : 'pending'}`} />
+                    <span className="status-name">{company.name}</span>
+                    <span className="status-badge">
+                      {confirmou ? '✓ Enviou' : '⏳ Pendente'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -497,27 +517,29 @@ const FacilitadorDashboard = () => {
 
           {/* ── Botões de Ação do Facilitador ── */}
           <div className="waiting-actions dash-actions">
-            {facilitadorToken && (
-              <>
-                {/* Botão Encerrar Jogo — sempre visível pro facilitador */}
-                <button
-                  className="btn-finish"
-                  onClick={() => setShowModalFinish(true)}
-                  disabled={isLoadingFinish || isLoadingNextRound || gameFinished}
-                >
-                  {isLoadingFinish ? 'Encerrando...' : 'Encerrar Jogo'}
-                </button>
+            
+                {/* Botão Encerrar Jogo — visível apenas na última rodada */}
+                {roundAtual === configRoom?.totalRounds && (
+                  <button
+                    className="btn-finish"
+                    onClick={() => setShowModalFinish(true)}
+                    disabled={isLoadingFinish || isLoadingNextRound || gameFinished}
+                  >
+                    {isLoadingFinish ? 'Encerrando...' : 'Encerrar Jogo'}
+                  </button>
+                )}
 
                 {/* Botão Próxima Rodada */}
-                <button
-                  className="btn-start"
-                  onClick={() => setShowModalStart(true)}
-                  disabled={isLoadingNextRound || isLoadingFinish || gameFinished}
-                >
-                  {isLoadingNextRound ? 'Avançando...' : 'Próxima Rodada'}
-                </button>
-              </>
-            )}
+                {roundAtual < configRoom?.totalRounds && (
+                  <button
+                    className="btn-start"
+                    onClick={() => setShowModalStart(true)}
+                    disabled={isLoadingNextRound || isLoadingFinish || gameFinished}
+                  >
+                    {isLoadingNextRound ? 'Avançando...' : 'Próxima Rodada'}
+                  </button>
+                )}
+             
           </div>
         </div>
       </div>
