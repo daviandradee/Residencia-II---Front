@@ -137,7 +137,13 @@ const toggleCapex = (key) => {
   }, [code]);
   useEffect(() => {
     if (Object.keys(configRoom).length > 0) {
-      console.log('✅ configRoom atualizado no estado:', configRoom);
+      setFormData(prev => ({
+        ...prev,
+        estoqueDisponivelPereciveis: configRoom.estoqueDisponivelPereciveis ?? prev.estoqueDisponivelPereciveis,
+        estoqueDisponivelMercearia:  configRoom.estoqueDisponivelMercearia  ?? prev.estoqueDisponivelMercearia,
+        estoqueDisponivelEletro:     configRoom.estoqueDisponivelEletro     ?? prev.estoqueDisponivelEletro,
+        estoqueDisponivelHipel:      configRoom.estoqueDisponivelHipel      ?? prev.estoqueDisponivelHipel,
+      }));
     }
   }, [configRoom]);
 

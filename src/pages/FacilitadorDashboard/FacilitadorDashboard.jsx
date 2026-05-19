@@ -90,6 +90,7 @@ const FacilitadorDashboard = () => {
 
       // Salva dados no localStorage pra tela de resultado
       localStorage.setItem('resultadoFinal', JSON.stringify(data));
+      localStorage.setItem('codeRoom', code);
 
       setTimeout(() => {
         navigate('/ranking-final');
@@ -273,6 +274,7 @@ const FacilitadorDashboard = () => {
 
       // Salva e redireciona
       localStorage.setItem('resultadoFinal', JSON.stringify(data));
+      localStorage.setItem('codeRoom', code);
       navigate('/ranking-final');
     } catch (error) {
       console.error('Erro ao encerrar jogo:', error);

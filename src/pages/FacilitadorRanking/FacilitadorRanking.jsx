@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../../index.css';
 import './FacilitadorRanking.css';
@@ -26,24 +26,39 @@ const CONFETTI_PIECES = [
   { tx:  180, ty:  -60, rot: -250, color: '#FF690A', w: 9,  h: 12, d: 0.50 },
 ];
 
-const MOCK_RESULTADO = [
-  { id: '1', pontosTotais: 1240, company: { name: 'Atacadão Sul',       managerName: 'Rafael Lima' } },
-  { id: '2', pontosTotais:  932, company: { name: 'Mercado Norte',      managerName: 'Camila Vieira' } },
-  { id: '3', pontosTotais:  870, company: { name: 'Hipermarket Leste',  managerName: 'Joana Pereira' } },
-  { id: '4', pontosTotais:  810, company: { name: 'SuperMais Centro',   managerName: 'Bruno Costa' } },
-  { id: '5', pontosTotais:  755, company: { name: 'Rede Compra Fácil',  managerName: 'Ana Souza' } },
-  { id: '6', pontosTotais:  690, company: { name: 'MaxiBox Oeste',      managerName: 'Carlos Melo' } },
-  { id: '7', pontosTotais:  620, company: { name: 'Grupo Varejo+',      managerName: 'Patrícia Lima' } },
-  { id: '8', pontosTotais:  540, company: { name: 'Central Market',     managerName: 'Diego Ramos' } },
-];
 
 const FacilitadorRanking = () => {
   const { code } = useParams();
   const navigate = useNavigate();
   const roomCode = code || localStorage.getItem('codeRoom');
-  const [resultado] = useState(MOCK_RESULTADO);
-  const [loading] = useState(false);
-  const [totalEmpresas] = useState(MOCK_RESULTADO.length);
+  const [resultado, setResultado] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalEmpresas, setTotalEmpresas] = useState(0);
+
+  useEffect(() => {
+    if (!roomCode) {
+      setLoading(false);
+      return;
+    }
+    fetch(`${import.meta.env.VITE_API_URL}/rooms/rank-final/${roomCode}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const ranking = data?.ranking || [];
+        // Normaliza para o formato esperado pelo template
+        const normalizado = ranking.map((item, i) => ({
+          id: item.empresaId || i,
+          pontosTotais: item.ebitdaAcumulado,
+          company: {
+            name: item.empresaNome,
+            managerName: item.managerName,
+          },
+        }));
+        setResultado(normalizado);
+        setTotalEmpresas(normalizado.length);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [roomCode]);
 
 
 
@@ -106,8 +121,8 @@ const FacilitadorRanking = () => {
                   </div>
                   <div className="fr-pod-divider" />
                   <div className="fr-pod-points">
-                    {(emp.pontosTotais || 0).toLocaleString('pt-BR')}
-                    <span>pontos</span>
+                    {(emp.pontosTotais || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                    <span>EBITDA</span>
                   </div>
                   <div className="fr-pod-base" />
                 </>
