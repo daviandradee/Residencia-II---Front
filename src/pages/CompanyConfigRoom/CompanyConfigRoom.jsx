@@ -7,6 +7,9 @@ import '../../assets/css/RoomConfig.css';
 import './CompanyConfigRoom.css';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import InfoButton from '../../components/tooltips/InfoButton';
+import MetricTooltip from '../../components/tooltips/MetricTooltip';
+import ProfessorFeed from '../../components/tooltips/ProfessorFeed';
 
 const CARGOS = ['Serviços', 'Abastecimento', 'Comercial', 'Operacional', 'Gerente'];
 
@@ -120,6 +123,13 @@ const toggleCapex = (key) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+
+  // ── Tooltip ⓘ em Estoque ──
+  const [showEstoqueTooltip, setShowEstoqueTooltip] = useState(false);
+
+  // ── Feed do Professor ──
+  const [professorTrigger, setProfessorTrigger] = useState(null);
+  const [savedDecisions, setSavedDecisions] = useState({});
   //pegar dados da sala
   useEffect(() => {
     try{
@@ -264,6 +274,23 @@ useEffect(() => {
       }
       setConfirmMessage(msg);
       setShowConfirmModal(true);
+
+      // ── Salvar snapshot para histórico de rodadas (localStorage) ──
+      const round = parseInt(localStorage.getItem('rankingRound') || '1');
+      const capexNovosLabels = CAPEX_ITEMS
+        .filter(item => formData[item.field] && !capexJaComprado[item.field])
+        .map(item => item.label)
+        .join(', ');
+      const snapshot = {
+        round,
+        precoCesta,
+        capexNovos: capexNovosLabels || 'Nenhum',
+      };
+      localStorage.setItem(`cencosud_config_r${round}`, JSON.stringify(snapshot));
+
+      // ── Feed do Professor (disparar toasts após confirmar) ──
+      setSavedDecisions({ ...formData, _excedente: excedente });
+      setProfessorTrigger(Date.now());
     } catch (err) {
       console.error(err);
       setError(err.message || 'Erro ao salvar configurações');
@@ -285,6 +312,14 @@ useEffect(() => {
 };
   return (
     <div className="config-container">
+      {/* Feed do Professor (sem UI) */}
+      <ProfessorFeed
+        context="config"
+        decisions={savedDecisions}
+        params={params}
+        trigger={professorTrigger}
+      />
+
       {/* Sidebar */}
       <aside className="config-sidebar config-sidebar-static">
         <div className="sidebar-top">
@@ -417,7 +452,15 @@ useEffect(() => {
               <div className="stock-header">
                 <span>Categoria</span>
                 <span className="stock-center">Custo <br /> Unitário</span>
-                <span className="stock-center">Em <br /> Estoque</span>
+                <span className="stock-center" style={{ position: 'relative' }}>
+                  Em <br /> Estoque
+                  <InfoButton
+                    inline
+                    onClick={() => setShowEstoqueTooltip(p => !p)}
+                    active={showEstoqueTooltip}
+                    ariaLabel="Explicar estoque acumulado"
+                  />
+                </span>
                 <span className="stock-center">Disponível</span>
                 <span className="stock-center">Qtd. <br /> Comprar</span>
                 <span className="stock-center">Disponibilidade <br /> (%)</span>
@@ -426,6 +469,22 @@ useEffect(() => {
                 <span className="stock-center">Margem <br /> (%)</span>
                 <span className="stock-center">Preço <br /> Venda</span>
               </div>
+              {/* Tooltip de Estoque Acumulado */}
+              {showEstoqueTooltip && (
+                <MetricTooltip
+                  isOpen={showEstoqueTooltip}
+                  onClose={() => setShowEstoqueTooltip(false)}
+                  metric="Em Estoque (acumulado)"
+                  formula="estoqueAtual = estoque não vendido da rodada anterior + compras novas"
+                  explanation="Estoque acumulado de rodadas anteriores. Produtos não vendidos carregam para a próxima rodada e podem gerar custos de aging e quebras."
+                  variables={[
+                    { name: 'Perecíveis em Estoque', description: 'acumulado', value: `${(params.estoqueAtualPereciveis || 0).toLocaleString('pt-BR')} un.` },
+                    { name: 'Mercearia em Estoque', description: 'acumulado', value: `${(params.estoqueAtualMercearia || 0).toLocaleString('pt-BR')} un.` },
+                    { name: 'Eletro em Estoque', description: 'acumulado', value: `${(params.estoqueAtualEletro || 0).toLocaleString('pt-BR')} un.` },
+                    { name: 'Hipel em Estoque', description: 'acumulado', value: `${(params.estoqueAtualHipel || 0).toLocaleString('pt-BR')} un.` },
+                  ]}
+                />
+              )}
               {[
                 { key: 'Pereciveis', label: 'Perecíveis', custo: configRoom.custoUntPereciveis || 0, imposto: configRoom.impostoPereciveis || 0 },
                 { key: 'Mercearia', label: 'Mercearia', custo: configRoom.custoUntMercearia || 0, imposto: configRoom.impostoMercearia || 0 },

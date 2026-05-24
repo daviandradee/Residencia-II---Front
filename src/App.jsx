@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ScrollToTop from "./components/ScrollToTop";
+import { ToastProvider } from './components/Toast';
 
 // Importe suas páginas (verifique se os nomes dos arquivos estão corretos)
 import Home from './pages/Landing/Landing';
@@ -16,28 +17,30 @@ import FacilitadorRanking from './pages/FacilitadorRanking/FacilitadorRanking';
 
 function App() {
   return (
-    <BrowserRouter>
-      
-      <ScrollToTop /> 
-      
-      <Routes>
-        {/* Rota da Landing Page (Raiz) */}
-        <Route path="/" element={<Home />} />
+    <ToastProvider>
+      <BrowserRouter>
         
-        {/* Rota da tela de PIN (Lobby) */}
-        <Route path="/lobby" element={<Lobby />} />
-        {/* Rota para configuração de sala */}
-        <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
-        {/* Rota para sala de espera */}
-        <Route path="/waitingroom/:code" element={<WaitingRoom />} />
-        <Route path="/gerente-quiz/:code" element={<GerenteQuizTime />} />
-        <Route path="/facilitador-quiz/:code" element={<FacilitadorQuizTime />} />
-        <Route path="/config/:companyId" element={<CompanyConfigRoom />} />
-        <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
-        <Route path="/ranking" element={<GerenteRanking />} />
-        <Route path="/ranking-final" element={<FacilitadorRanking />} />
-      </Routes>
-    </BrowserRouter>
+        <ScrollToTop /> 
+        
+        <Routes>
+          {/* Rota da Landing Page (Raiz) */}
+          <Route path="/" element={<Home />} />
+          
+          {/* Rota da tela de PIN (Lobby) */}
+          <Route path="/lobby" element={<Lobby />} />
+          {/* Rota para configuração de sala */}
+          <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
+          {/* Rota para sala de espera */}
+          <Route path="/waitingroom/:code" element={<WaitingRoom />} />
+          <Route path="/gerente-quiz/:code" element={<GerenteQuizTime />} />
+          <Route path="/facilitador-quiz/:code" element={<FacilitadorQuizTime />} />
+          <Route path="/config/:companyId" element={<CompanyConfigRoom />} />
+          <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
+          <Route path="/ranking" element={<GerenteRanking />} />
+          <Route path="/ranking-final" element={<FacilitadorRanking />} />
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 
