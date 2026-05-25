@@ -1,0 +1,304 @@
+/* ============================================================
+   tooltips.css — Sistema de Tooltips Educativos Cencosud Trainer
+   Paleta: azul #0B5A97 | laranja #FF690A
+   ============================================================ */
+
+/* ── InfoButton (ⓘ) ── */
+.info-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-primary-blue);
+  background: transparent;
+  color: var(--color-primary-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.15s;
+  z-index: 10;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.info-btn:hover {
+  background: rgba(11, 90, 151, 0.1);
+  transform: scale(1.1);
+}
+
+.info-btn.info-btn--active {
+  background: var(--color-primary-blue);
+  color: #fff;
+}
+
+.info-btn:focus-visible {
+  outline: 2px solid var(--color-action-orange);
+  outline-offset: 2px;
+}
+
+/* Variante inline (não-absoluta — para cabeçalhos de tabela) */
+.info-btn--inline {
+  position: static;
+  margin-left: 6px;
+  vertical-align: middle;
+  display: inline-flex;
+}
+
+/* ── MetricTooltip (mini-modal expandível) ── */
+.metric-tooltip-wrapper {
+  position: relative;
+}
+
+.metric-tooltip {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.32s ease, opacity 0.25s ease, margin-top 0.25s ease;
+  margin-top: 0;
+  background: #f8f9fa;
+  border: 1.5px solid var(--color-primary-blue);
+  border-radius: 10px;
+  font-family: var(--font-family-base);
+}
+
+.metric-tooltip.metric-tooltip--open {
+  max-height: 560px;
+  opacity: 1;
+  margin-top: 10px;
+}
+
+.metric-tooltip-inner {
+  padding: 16px 18px;
+}
+
+.metric-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.metric-tooltip-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-tooltip-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.metric-tooltip-close:hover {
+  color: var(--color-primary-blue);
+  background: rgba(11, 90, 151, 0.08);
+}
+
+/* Fórmula */
+.metric-tooltip-formula {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.82rem;
+  color: var(--color-text-dark);
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.metric-tooltip-formula .formula-var {
+  color: var(--color-action-orange);
+  font-weight: 700;
+}
+
+.metric-tooltip-formula .formula-result {
+  color: var(--color-primary-blue);
+  font-weight: 700;
+}
+
+/* Variáveis */
+.metric-tooltip-vars {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-tooltip-var {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.var-name {
+  color: var(--color-action-orange);
+  font-weight: 600;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.var-desc {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.var-value {
+  margin-left: auto;
+  color: var(--color-primary-blue);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Divider */
+.metric-tooltip-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 10px 0;
+}
+
+/* Explicação */
+.metric-tooltip-explanation {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  font-style: italic;
+  background: rgba(11, 90, 151, 0.04);
+  border-left: 3px solid var(--color-primary-blue);
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ── Stat card com position relative para o botão ⓘ ── */
+.gr-stat-card {
+  position: relative; /* necessário para info-btn absolute */
+}
+
+/* ── DecisionHistory ── */
+.decision-history {
+  margin-top: 4px;
+}
+
+.decision-history-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.decision-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  background: var(--color-card-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.decision-history-table thead th {
+  background: var(--color-primary-blue);
+  color: #fff;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.decision-history-table thead th:first-child {
+  text-align: left;
+}
+
+.decision-history-table tbody tr:nth-child(even) {
+  background: rgba(11, 90, 151, 0.03);
+}
+
+.decision-history-table tbody tr:hover {
+  background: rgba(11, 90, 151, 0.07);
+}
+
+.decision-history-table tbody td {
+  padding: 9px 12px;
+  text-align: center;
+  color: var(--color-text-dark);
+  border-top: 1px solid var(--color-border);
+}
+
+.decision-history-table tbody td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-primary-blue);
+}
+
+.dh-ebitda-pos { color: #1a9e4e; font-weight: 700; }
+.dh-ebitda-neg { color: var(--color-leave-room-red); font-weight: 700; }
+
+.decision-history-chart {
+  margin-top: 20px;
+}
+
+.decision-history-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+  padding: 24px;
+  font-style: italic;
+}
+
+/* ── Mobile: tooltip vira modal fullscreen ── */
+@media (max-width: 768px) {
+  .metric-tooltip.metric-tooltip--open {
+    position: fixed;
+    inset: 8%;
+    max-height: unset;
+    height: auto;
+    margin-top: 0;
+    z-index: 9999;
+    overflow-y: auto;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  }
+
+  .metric-tooltip-inner {
+    padding: 20px;
+  }
+
+  /* Overlay escuro por trás no mobile */
+  .metric-tooltip-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9998;
+  }
+}
+
+@media (min-width: 769px) {
+  .metric-tooltip-overlay {
+    display: none;
+  }
+}

@@ -7,6 +7,8 @@ import { io } from 'socket.io-client';
 import Modal from '../../components/Modal';
 import GraficoDemandaEmpresas from '../../components/GraficoDemandaEmpresas';
 import { useToast } from '../../components/Toast.jsx';
+import InfoButton from '../../components/tooltips/InfoButton';
+import MetricTooltip from '../../components/tooltips/MetricTooltip';
 
 const FacilitadorDashboard = () => {
   const { code } = useParams();
@@ -34,6 +36,38 @@ const FacilitadorDashboard = () => {
 
   const facilitadorToken = localStorage.getItem('facilitadorToken');
   const roundAtualRef = useRef(roundAtual);
+
+  // ── Tooltip state (dashboard) ──
+  const [openTooltip, setOpenTooltip] = useState(null);
+  const toggleTooltip = (key) => setOpenTooltip(prev => prev === key ? null : key);
+
+  // Definições dos tooltips para o dashboard do facilitador
+  const DASH_TOOLTIPS = {
+    precoCesta: {
+      metric: 'Preço Médio da Cesta',
+      formula: '(preço Perecíveis + preço Mercearia + preço Eletro + preço Hipel) / 4',
+      explanation: 'Cada empresa define margens por categoria. O preço da cesta é a soma dos 4 itens (1 de cada categoria), calculado como: custo unitário × (1 + margem%). Empresas com preço menor tendem a capturar mais demanda.',
+      variables: [],
+    },
+    disponibilidade: {
+      metric: 'Disponibilidade',
+      formula: 'Média de (estoque total categoria / estoque disponível sala) × 100',
+      explanation: 'Disponibilidade mede quanto da demanda do mercado cada empresa consegue atender. É calculada com base no estoque acumulado (rodadas anteriores + compras desta rodada).',
+      variables: [],
+    },
+    csat: {
+      metric: 'CSAT',
+      formula: '(operadores de serviço / 10) × (acertos quiz / 10) × 100',
+      explanation: 'CSAT combina dois fatores: quantos operadores de serviço foram alocados (máximo assumido: 10) e o desempenho no quiz de cada gerente. Ambos multiplicados formam o índice de satisfação.',
+      variables: [],
+    },
+    demanda: {
+      metric: '% Participação de Demanda',
+      formula: 'pontos da empresa / soma de pontos de todas as empresas',
+      explanation: 'A demanda total do mercado é distribuída proporcionalmente com base em pontos acumulados nos rankings de Preço, Disponibilidade e CSAT. Quem lidera mais pilares, captura mais clientes.',
+      variables: [],
+    },
+  };
 
   useEffect(() => {
     roundAtualRef.current = roundAtual;
@@ -357,10 +391,42 @@ const FacilitadorDashboard = () => {
             <div className="dash-table">
               <div className="dash-table-header">
                 <span>Empresa</span>
-                <span className="dash-center">Preço Médio<br />da Cesta</span>
-                <span className="dash-center">Disponibilidade</span>
-                <span className="dash-center">CSAT</span>
-                <span className="dash-center">% Part. Demanda<br />de Vendas</span>
+                <span className="dash-center">
+                  Preço Médio<br />da Cesta
+                  <InfoButton
+                    inline
+                    onClick={() => toggleTooltip('precoCesta')}
+                    active={openTooltip === 'precoCesta'}
+                    ariaLabel="Explicar Preço Médio da Cesta"
+                  />
+                </span>
+                <span className="dash-center">
+                  Disponibilidade
+                  <InfoButton
+                    inline
+                    onClick={() => toggleTooltip('disponibilidade')}
+                    active={openTooltip === 'disponibilidade'}
+                    ariaLabel="Explicar Disponibilidade"
+                  />
+                </span>
+                <span className="dash-center">
+                  CSAT
+                  <InfoButton
+                    inline
+                    onClick={() => toggleTooltip('csat')}
+                    active={openTooltip === 'csat'}
+                    ariaLabel="Explicar CSAT"
+                  />
+                </span>
+                <span className="dash-center">
+                  % Part. Demanda<br />de Vendas
+                  <InfoButton
+                    inline
+                    onClick={() => toggleTooltip('demanda')}
+                    active={openTooltip === 'demanda'}
+                    ariaLabel="Explicar Participação de Demanda"
+                  />
+                </span>
               </div>
               {resultado.length === 0 && !loading && (
                 <div className="dash-table-empty">Nenhuma empresa encontrada.</div>
@@ -375,6 +441,11 @@ const FacilitadorDashboard = () => {
                 </div>
               ))}
             </div>
+            {/* Tooltips do dashboard — Fase 2 */}
+            <MetricTooltip isOpen={openTooltip === 'precoCesta'} onClose={() => setOpenTooltip(null)} {...DASH_TOOLTIPS.precoCesta} />
+            <MetricTooltip isOpen={openTooltip === 'disponibilidade'} onClose={() => setOpenTooltip(null)} {...DASH_TOOLTIPS.disponibilidade} />
+            <MetricTooltip isOpen={openTooltip === 'csat'} onClose={() => setOpenTooltip(null)} {...DASH_TOOLTIPS.csat} />
+            <MetricTooltip isOpen={openTooltip === 'demanda'} onClose={() => setOpenTooltip(null)} {...DASH_TOOLTIPS.demanda} />
           </section>
 
           {/* SEÇÃO 2: Ranking */}
