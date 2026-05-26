@@ -42,8 +42,12 @@
 /* ── Cards de estatisticas ── */
 .gr-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.metric-tooltip-wrapper {
+  min-width: 0;
 }
 
 .gr-stat-card {
