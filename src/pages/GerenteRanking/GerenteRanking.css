@@ -12,10 +12,10 @@
   }
 }
 
-/* ── Ranking table (5 colunas) ── */
+/* ── Ranking table (4 colunas) ── */
 .gr-ranking-header,
 .gr-ranking-row {
-  grid-template-columns: 0.7fr 1.5fr 1.2fr 1fr 0.8fr;
+  grid-template-columns: 0.7fr 1.5fr 1.2fr 1fr;
 }
 
 /* ── Highlight da minha empresa ── */

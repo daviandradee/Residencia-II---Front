@@ -77,11 +77,11 @@ const buildTooltipData = (meuResultado, resultado, companyId) => {
 
   return {
     precoCesta: {
-      metric: 'Preço Médio da Cesta',
-      formula: '(preço Perecíveis + preço Mercearia + preço Eletro + preço Hipel) / 4',
-      explanation: 'O cliente avalia uma cesta com 1 item de cada categoria. O preço da cesta é a média simples dos 4 itens.',
+      metric: 'Preço da Cesta',
+      formula: 'preço Perecíveis + preço Mercearia + preço Eletro + preço Hipel',
+      explanation: 'O cliente avalia uma cesta com 1 item de cada categoria. O preço da cesta é a soma dos preços dos 4 itens.',
       variables: [
-        { name: 'Preço Médio da Cesta', description: 'resultado desta rodada', value: fmtR(r.precoMedioCesta) },
+        { name: 'Preço da Cesta', description: 'resultado desta rodada', value: fmtR(r.precoMedioCesta) },
       ],
     },
     disponibilidade: {
@@ -451,7 +451,6 @@ const GerenteRanking = () => {
                 <span>Empresa</span>
                 <span>Gerente</span>
                 <span className="dash-center">Receita Total</span>
-                <span className="dash-center">Pontos</span>
               </div>
               {resultado.length === 0 && !loading && (
                 <div className="dash-table-empty">Nenhum resultado disponível.</div>
@@ -472,9 +471,6 @@ const GerenteRanking = () => {
                     <span className="dash-center dash-total-score">
                       <strong>{fmt(emp.receitaTotal)}</strong>
                     </span>
-                    <span className="dash-center">
-                      <strong>{emp.pontosTotais || 0}</strong>
-                    </span>
                   </div>
                 );
               })}
@@ -494,9 +490,9 @@ const GerenteRanking = () => {
                     <InfoButton
                       onClick={() => toggleTooltip('precoCesta')}
                       active={openTooltip === 'precoCesta'}
-                      ariaLabel="Explicar Preço Médio da Cesta"
+                      ariaLabel="Explicar Preço da Cesta"
                     />
-                    <span className="gr-stat-label">Preço Médio da Cesta</span>
+                    <span className="gr-stat-label">Preço da Cesta</span>
                     <strong className="gr-stat-value">{fmt(meuResultado.precoMedioCesta)}</strong>
                   </div>
                   <MetricTooltip
@@ -617,28 +613,6 @@ const GerenteRanking = () => {
                 <div className="gr-stat-card">
                   <span className="gr-stat-label">Receita Final</span>
                   <strong className="gr-stat-value">{fmt(meuResultado.receitaTotal)}</strong>
-                </div>
-
-                {/* EBITDA — Fase 2 */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('ebitda')}
-                      active={openTooltip === 'ebitda'}
-                      ariaLabel="Explicar EBITDA"
-                    />
-                    <span className="gr-stat-label">EBITDA</span>
-                    <strong className="gr-stat-value">
-                      {meuResultado.ebitda !== undefined && meuResultado.ebitda !== null
-                        ? fmtPercent(meuResultado.ebitda)
-                        : '—'}
-                    </strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'ebitda'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.ebitda}
-                  />
                 </div>
 
                 {/* Juros — Fase 2 */}
