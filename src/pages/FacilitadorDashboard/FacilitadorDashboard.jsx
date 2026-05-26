@@ -348,17 +348,12 @@ const FacilitadorDashboard = () => {
         </div>
 
         <div className="dash-info-card">
-          <span className="dash-info-label">Empresas Conectadas</span>
-          <strong className="dash-info-value">{resultado.length}</strong>
-        </div>
-
-        <div className="dash-info-card">
           <span className="dash-info-label">Rodada Atual</span>
           <strong className="dash-info-value">{roundAtual} / {configRoom?.totalRounds || '—'}</strong>
         </div>
 
-        {/* Status de confirmação das empresas */}
-        {companies.length > 0 && (
+        {/* Status de confirmação das empresas — rodadas 1 e 2 */}
+        {roundAtual <= 2 && companies.length > 0 && (
           <div className="dash-info-card dash-status-card">
             <span className="dash-info-label">
               Status das Empresas ({configuredCompanyIds.size}/{companies.length})
