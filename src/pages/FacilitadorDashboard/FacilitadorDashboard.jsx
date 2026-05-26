@@ -448,7 +448,108 @@ const FacilitadorDashboard = () => {
             <MetricTooltip isOpen={openTooltip === 'demanda'} onClose={() => setOpenTooltip(null)} {...DASH_TOOLTIPS.demanda} />
           </section>
 
-          {/* SEÇÃO 2: Ranking */}
+          {/* SEÇÃO 2: Cálculo de Pontos */}
+          {resultado.length > 0 && (
+            <section className="config-section">
+              <h3 className="section-subtitle">Cálculo de Pontos</h3>
+
+              <div className="pontos-explicacao">
+                <div className="pontos-exp-bloco">
+                  <span className="pontos-exp-titulo">Como funciona?</span>
+                  <p className="pontos-exp-texto">
+                    Com <strong>{resultado.length} empresas</strong>, cada critério distribui pontos por posição:
+                    1º lugar = <strong>{resultado.length} pts</strong>, 2º = <strong>{resultado.length - 1} pts</strong>… até {resultado.length}º = <strong>1 pt</strong>.
+                    A soma dos pontos dos 3 critérios determina a fatia de demanda de cada empresa.
+                  </p>
+                </div>
+                <div className="pontos-exp-criterios">
+                  <div className="pontos-criterio-item">
+                    <span className="pontos-criterio-icon pontos-icon-preco" />
+                    <div>
+                      <strong>Preço da Cesta</strong>
+                      <span>Menor = melhor</span>
+                    </div>
+                  </div>
+                  <div className="pontos-criterio-item">
+                    <span className="pontos-criterio-icon pontos-icon-disp" />
+                    <div>
+                      <strong>Disponibilidade</strong>
+                      <span>Maior = melhor</span>
+                    </div>
+                  </div>
+                  <div className="pontos-criterio-item">
+                    <span className="pontos-criterio-icon pontos-icon-csat" />
+                    <div>
+                      <strong>CSAT</strong>
+                      <span>Maior = melhor</span>
+                    </div>
+                  </div>
+                  <div className="pontos-criterio-formula">
+                    <span>% Demanda = Pts Totais ÷ Σ Pts de Todas</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dash-table">
+                <div className="dash-table-header dash-pontos-header">
+                  <span>Empresa</span>
+                  <span className="dash-center">
+                    Pts Preço
+                    <br /><small className="pontos-hint">menor = melhor</small>
+                  </span>
+                  <span className="dash-center">
+                    Pts Disponib.
+                    <br /><small className="pontos-hint">maior = melhor</small>
+                  </span>
+                  <span className="dash-center">
+                    Pts CSAT
+                    <br /><small className="pontos-hint">maior = melhor</small>
+                  </span>
+                  <span className="dash-center">Total<br />de Pontos</span>
+                  <span className="dash-center">% Demanda</span>
+                </div>
+                {resultado.map((empresa, index) => {
+                  const n = resultado.length;
+                  const posPrecoCesta = n - empresa.precoMedioCestaPontos + 1;
+                  const posDisponib = n - empresa.disponibilidadePontos + 1;
+                  const posCsat = n - empresa.csatPontos + 1;
+                  const getPosClass = (pos) =>
+                    pos === 1 ? 'pontos-pos-first' : pos === n ? 'pontos-pos-last' : 'pontos-pos-mid';
+                  return (
+                    <div className="dash-table-row dash-pontos-row" key={empresa.id || empresa.company?.name || index}>
+                      <span className="dash-empresa-name">{empresa.company.name}</span>
+                      <span className="dash-center">
+                        <div className="pontos-cell">
+                          <span className="pontos-value">{empresa.precoMedioCestaPontos}</span>
+                          <span className={`pontos-pos ${getPosClass(posPrecoCesta)}`}>{posPrecoCesta}°</span>
+                        </div>
+                      </span>
+                      <span className="dash-center">
+                        <div className="pontos-cell">
+                          <span className="pontos-value">{empresa.disponibilidadePontos}</span>
+                          <span className={`pontos-pos ${getPosClass(posDisponib)}`}>{posDisponib}°</span>
+                        </div>
+                      </span>
+                      <span className="dash-center">
+                        <div className="pontos-cell">
+                          <span className="pontos-value">{empresa.csatPontos}</span>
+                          <span className={`pontos-pos ${getPosClass(posCsat)}`}>{posCsat}°</span>
+                        </div>
+                      </span>
+                      <span className="dash-center">
+                        <strong className="pontos-total">{empresa.pontosTotais}</strong>
+                      </span>
+                      <span className="dash-center">
+                        <span className="pontos-demanda">{fmtPercent(empresa.percentualDemanda * 100)}</span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* SEÇÃO 3: Ranking */}
           <section className="config-section">
             <h3 className="section-subtitle">Ranking</h3>
             <div className="dash-table">
