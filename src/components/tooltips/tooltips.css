@@ -144,30 +144,31 @@
 }
 
 .metric-tooltip-var {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.82rem;
 }
 
 .var-name {
   color: var(--color-action-orange);
   font-weight: 600;
-  min-width: 0;
   white-space: nowrap;
 }
 
 .var-desc {
   color: var(--color-text-muted);
   font-size: 0.78rem;
+  min-width: 0;
 }
 
 .var-value {
-  margin-left: auto;
   color: var(--color-primary-blue);
   font-weight: 700;
   font-size: 0.85rem;
   white-space: nowrap;
+  text-align: right;
 }
 
 /* Divider */

@@ -477,93 +477,58 @@ const GerenteRanking = () => {
               <div className="gr-stats-grid">
 
                 {/* Preço Médio da Cesta */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('precoCesta')}
-                      active={openTooltip === 'precoCesta'}
-                      ariaLabel="Explicar Preço da Cesta"
-                    />
-                    <span className="gr-stat-label">Preço da Cesta</span>
-                    <strong className="gr-stat-value">{fmt(meuResultado.precoMedioCesta)}</strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'precoCesta'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.precoCesta}
+                <div className="gr-stat-card">
+                  <InfoButton
+                    onClick={() => toggleTooltip('precoCesta')}
+                    active={openTooltip === 'precoCesta'}
+                    ariaLabel="Explicar Preço da Cesta"
                   />
+                  <span className="gr-stat-label">Preço da Cesta</span>
+                  <strong className="gr-stat-value">{fmt(meuResultado.precoMedioCesta)}</strong>
                 </div>
 
                 {/* Disponibilidade */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('disponibilidade')}
-                      active={openTooltip === 'disponibilidade'}
-                      ariaLabel="Explicar Disponibilidade"
-                    />
-                    <span className="gr-stat-label">Disponibilidade</span>
-                    <strong className="gr-stat-value">{fmtPercent(meuResultado.disponibilidade)}</strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'disponibilidade'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.disponibilidade}
+                <div className="gr-stat-card">
+                  <InfoButton
+                    onClick={() => toggleTooltip('disponibilidade')}
+                    active={openTooltip === 'disponibilidade'}
+                    ariaLabel="Explicar Disponibilidade"
                   />
+                  <span className="gr-stat-label">Disponibilidade</span>
+                  <strong className="gr-stat-value">{fmtPercent(meuResultado.disponibilidade)}</strong>
                 </div>
 
                 {/* CSAT */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('csat')}
-                      active={openTooltip === 'csat'}
-                      ariaLabel="Explicar CSAT"
-                    />
-                    <span className="gr-stat-label">CSAT</span>
-                    <strong className="gr-stat-value">{fmtPercent(meuResultado.csat)}</strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'csat'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.csat}
+                <div className="gr-stat-card">
+                  <InfoButton
+                    onClick={() => toggleTooltip('csat')}
+                    active={openTooltip === 'csat'}
+                    ariaLabel="Explicar CSAT"
                   />
+                  <span className="gr-stat-label">CSAT</span>
+                  <strong className="gr-stat-value">{fmtPercent(meuResultado.csat)}</strong>
                 </div>
 
                 {/* % Demanda */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('demanda')}
-                      active={openTooltip === 'demanda'}
-                      ariaLabel="Explicar Participação de Demanda"
-                    />
-                    <span className="gr-stat-label">Part. Demanda</span>
-                    <strong className="gr-stat-value">{fmtPercent((meuResultado.percentualDemanda || 0) * 100)}</strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'demanda'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.demanda}
+                <div className="gr-stat-card">
+                  <InfoButton
+                    onClick={() => toggleTooltip('demanda')}
+                    active={openTooltip === 'demanda'}
+                    ariaLabel="Explicar Participação de Demanda"
                   />
+                  <span className="gr-stat-label">Part. Demanda</span>
+                  <strong className="gr-stat-value">{fmtPercent((meuResultado.percentualDemanda || 0) * 100)}</strong>
                 </div>
 
                 {/* Receita Bruta */}
-                <div className="metric-tooltip-wrapper">
-                  <div className="gr-stat-card">
-                    <InfoButton
-                      onClick={() => toggleTooltip('receita')}
-                      active={openTooltip === 'receita'}
-                      ariaLabel="Explicar Receita Bruta vs Final"
-                    />
-                    <span className="gr-stat-label">Receita Antes do Impacto</span>
-                    <strong className="gr-stat-value">{fmt(meuResultado.receitaBruta)}</strong>
-                  </div>
-                  <MetricTooltip
-                    isOpen={openTooltip === 'receita'}
-                    onClose={() => setOpenTooltip(null)}
-                    {...tooltips.receita}
+                <div className="gr-stat-card">
+                  <InfoButton
+                    onClick={() => toggleTooltip('receita')}
+                    active={openTooltip === 'receita'}
+                    ariaLabel="Explicar Receita Bruta vs Final"
                   />
+                  <span className="gr-stat-label">Receita Antes do Impacto</span>
+                  <strong className="gr-stat-value">{fmt(meuResultado.receitaBruta)}</strong>
                 </div>
 
                 {/* Houve Penalidade */}
@@ -609,56 +574,59 @@ const GerenteRanking = () => {
 
                 {/* Juros — Fase 2 */}
                 {(meuResultado.jurosAplicado !== undefined && meuResultado.jurosAplicado !== null) && (
-                  <div className="metric-tooltip-wrapper">
-                    <div className={`gr-stat-card ${meuResultado.jurosAplicado > 0 ? 'gr-stat-card-alert' : ''}`}>
-                      <InfoButton
-                        onClick={() => toggleTooltip('juros')}
-                        active={openTooltip === 'juros'}
-                        ariaLabel="Explicar Juros Cheque Especial"
-                      />
-                      <span className="gr-stat-label">Juros (Cheque Especial)</span>
-                      <strong className={`gr-stat-value ${meuResultado.jurosAplicado > 0 ? 'gr-stat-value-danger' : ''}`}>
-                        {fmt(meuResultado.jurosAplicado)}
-                      </strong>
-                    </div>
-                    <MetricTooltip
-                      isOpen={openTooltip === 'juros'}
-                      onClose={() => setOpenTooltip(null)}
-                      {...tooltips.juros}
+                  <div className={`gr-stat-card ${meuResultado.jurosAplicado > 0 ? 'gr-stat-card-alert' : ''}`}>
+                    <InfoButton
+                      onClick={() => toggleTooltip('juros')}
+                      active={openTooltip === 'juros'}
+                      ariaLabel="Explicar Juros Cheque Especial"
                     />
+                    <span className="gr-stat-label">Juros (Cheque Especial)</span>
+                    <strong className={`gr-stat-value ${meuResultado.jurosAplicado > 0 ? 'gr-stat-value-danger' : ''}`}>
+                      {fmt(meuResultado.jurosAplicado)}
+                    </strong>
                   </div>
                 )}
 
                 {/* Estoque Acumulado (Fase 1) */}
                 {estoqueAcumulado !== null && (
-                  <div className="metric-tooltip-wrapper">
-                    <div className="gr-stat-card">
-                      <InfoButton
-                        onClick={() => toggleTooltip('estoqueAcumulado')}
-                        active={openTooltip === 'estoqueAcumulado'}
-                        ariaLabel="Explicar Estoque Acumulado"
-                      />
-                      <span className="gr-stat-label">Estoque Acumulado</span>
-                      <strong className="gr-stat-value">{estoqueAcumulado.toLocaleString('pt-BR')} un.</strong>
-                    </div>
-                    <MetricTooltip
-                      isOpen={openTooltip === 'estoqueAcumulado'}
-                      onClose={() => setOpenTooltip(null)}
-                      metric="Estoque Acumulado"
-                      formula="estoqueAtual = estoque anterior não vendido + compras desta rodada"
-                      explanation="Total de produtos ainda em sua loja. Estoque não vendido carrega para a próxima rodada e pode estragar (aging + quebras)."
-                      variables={[
-                        { name: 'Perecíveis em Estoque', description: '', value: (meuResultado.estoqueAtualPereciveis || 0).toLocaleString('pt-BR') + ' un.' },
-                        { name: 'Mercearia em Estoque', description: '', value: (meuResultado.estoqueAtualMercearia || 0).toLocaleString('pt-BR') + ' un.' },
-                        { name: 'Eletro em Estoque', description: '', value: (meuResultado.estoqueAtualEletro || 0).toLocaleString('pt-BR') + ' un.' },
-                        { name: 'Hipel em Estoque', description: '', value: (meuResultado.estoqueAtualHipel || 0).toLocaleString('pt-BR') + ' un.' },
-                        { name: 'Total Acumulado', description: '', value: estoqueAcumulado.toLocaleString('pt-BR') + ' un.' },
-                      ]}
+                  <div className="gr-stat-card">
+                    <InfoButton
+                      onClick={() => toggleTooltip('estoqueAcumulado')}
+                      active={openTooltip === 'estoqueAcumulado'}
+                      ariaLabel="Explicar Estoque Acumulado"
                     />
+                    <span className="gr-stat-label">Estoque Acumulado</span>
+                    <strong className="gr-stat-value">{estoqueAcumulado.toLocaleString('pt-BR')} un.</strong>
                   </div>
                 )}
 
               </div>
+
+              {/* Tooltips fora do grid — largura total, igual ao FacilitadorDashboard */}
+              <MetricTooltip isOpen={openTooltip === 'precoCesta'} onClose={() => setOpenTooltip(null)} {...tooltips.precoCesta} />
+              <MetricTooltip isOpen={openTooltip === 'disponibilidade'} onClose={() => setOpenTooltip(null)} {...tooltips.disponibilidade} />
+              <MetricTooltip isOpen={openTooltip === 'csat'} onClose={() => setOpenTooltip(null)} {...tooltips.csat} />
+              <MetricTooltip isOpen={openTooltip === 'demanda'} onClose={() => setOpenTooltip(null)} {...tooltips.demanda} />
+              <MetricTooltip isOpen={openTooltip === 'receita'} onClose={() => setOpenTooltip(null)} {...tooltips.receita} />
+              {(meuResultado.jurosAplicado !== undefined && meuResultado.jurosAplicado !== null) && (
+                <MetricTooltip isOpen={openTooltip === 'juros'} onClose={() => setOpenTooltip(null)} {...tooltips.juros} />
+              )}
+              {estoqueAcumulado !== null && (
+                <MetricTooltip
+                  isOpen={openTooltip === 'estoqueAcumulado'}
+                  onClose={() => setOpenTooltip(null)}
+                  metric="Estoque Acumulado"
+                  formula="estoqueAtual = estoque anterior não vendido + compras desta rodada"
+                  explanation="Total de produtos ainda em sua loja. Estoque não vendido carrega para a próxima rodada e pode estragar (aging + quebras)."
+                  variables={[
+                    { name: 'Perecíveis em Estoque', description: '', value: (meuResultado.estoqueAtualPereciveis || 0).toLocaleString('pt-BR') + ' un.' },
+                    { name: 'Mercearia em Estoque', description: '', value: (meuResultado.estoqueAtualMercearia || 0).toLocaleString('pt-BR') + ' un.' },
+                    { name: 'Eletro em Estoque', description: '', value: (meuResultado.estoqueAtualEletro || 0).toLocaleString('pt-BR') + ' un.' },
+                    { name: 'Hipel em Estoque', description: '', value: (meuResultado.estoqueAtualHipel || 0).toLocaleString('pt-BR') + ' un.' },
+                    { name: 'Total Acumulado', description: '', value: estoqueAcumulado.toLocaleString('pt-BR') + ' un.' },
+                  ]}
+                />
+              )}
             </section>
           )}
 
