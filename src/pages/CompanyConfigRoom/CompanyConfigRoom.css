@@ -339,6 +339,12 @@
   background: var(--color-background-light) !important;
 }
 
+/* Disponível esgotado */
+.stock-esgotado {
+  color: #e53935;
+  font-weight: 700;
+}
+
 /* ── Animação shake ── */
 @keyframes shake {
   0% { transform: translateX(0); }

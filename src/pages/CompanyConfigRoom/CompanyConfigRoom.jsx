@@ -59,6 +59,10 @@ const CompanyConfigRoom = () => {
     estoqueAtualMercearia: 0,
     estoqueAtualEletro: 0,
     estoqueAtualHipel: 0,
+    estoqueJaCompradoPereciveis: 0,
+    estoqueJaCompradoMercearia: 0,
+    estoqueJaCompradoEletro: 0,
+    estoqueJaCompradoHipel: 0,
   });
 
   const [cargos, setCargos] = useState({
@@ -96,15 +100,16 @@ const CompanyConfigRoom = () => {
   });
   const handleChange = (e) => {
   const { name, value, type, checked } = e.target;
-  if (name.startsWith('estoque')) {
+  if (name.startsWith('estoque') && !name.startsWith('estoqueDisponivel')) {
     const catKey = name.replace('estoque', '');
-    const disponivel = formData[`estoqueDisponivel${catKey}`];
+    const disponivelTotal = formData[`estoqueDisponivel${catKey}`];
+    const jaComprado = params[`estoqueJaComprado${catKey}`] || 0;
+    const disponivelRestante = Math.max(0, disponivelTotal - jaComprado);
     const numValue = Number(value) || 0;
-    
-    // Não permite comprar mais que o disponível
-    if (numValue > disponivel) {
-      console.warn(`⚠️ Quantidade não pode exceder o disponível (${disponivel} un.)`);
-      return; // Não atualiza o estado
+
+    if (numValue > disponivelRestante) {
+      console.warn(`⚠️ Quantidade não pode exceder o disponível restante (${disponivelRestante} un.)`);
+      return;
     }
   }
   setFormData(prev => ({
@@ -460,9 +465,11 @@ useEffect(() => {
               ].map(cat => {
                 const qtd = formData[`estoque${cat.key}`];
                 const margem = formData[`margem${cat.key}`];
-                const disponivel = formData[`estoqueDisponivel${cat.key}`];
+                const disponivelTotal = formData[`estoqueDisponivel${cat.key}`];
+                const jaComprado = params[`estoqueJaComprado${cat.key}`] || 0;
+                const disponivelRestante = Math.max(0, disponivelTotal - jaComprado);
                 const emEstoque = params[`estoqueAtual${cat.key}`] || 0;
-                const disponibilidade = disponivel > 0 ? (qtd / disponivel) * 100 : 0;
+                const disponibilidade = disponivelTotal > 0 ? (qtd / disponivelTotal) * 100 : 0;
                 const custoTotal = qtd * cat.custo;
                 const precoVenda = cat.custo * (1 + margem / 100);
                 return (
@@ -470,12 +477,14 @@ useEffect(() => {
                     <span className="stock-cat">{cat.label}</span>
                     <span className="stock-center">{fmt(cat.custo)}</span>
                     <span className="stock-center">{emEstoque.toLocaleString('pt-BR')} un.</span>
-                    <span className="stock-center">{disponivel} un.</span>
+                    <span className={`stock-center ${disponivelRestante === 0 ? 'stock-esgotado' : ''}`}>
+                      {disponivelRestante.toLocaleString('pt-BR')} un.
+                    </span>
                     <input
                       name={`estoque${cat.key}`}
                       type="text"
                       min="0"
-                      max={disponivel}
+                      max={disponivelRestante}
                       value={qtd}
                       onChange={handleChange}
                       className="stock-input"
