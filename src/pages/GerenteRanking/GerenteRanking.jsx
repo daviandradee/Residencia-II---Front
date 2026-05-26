@@ -277,15 +277,7 @@ const GerenteRanking = () => {
             const newEntry = {
               round: roundAtual,
               precoCesta: r.precoMedioCesta,
-              estoqueTotal:
-                (r.qtdVendidaPereciveis || 0) +
-                (r.qtdVendidaMercearia || 0) +
-                (r.qtdVendidaEletro || 0) +
-                (r.qtdVendidaHipel || 0) +
-                (r.deixouDeVenderPereciveis || 0) +
-                (r.deixouDeVenderMercearia || 0) +
-                (r.deixouDeVenderEletro || 0) +
-                (r.deixouDeVenderHipel || 0),
+              disponibilidade: r.disponibilidade ?? null,
               capexNovos: myConfig?.capexNovos || '—',
               receitaTotal: r.receitaTotal,
               ebitda: r.ebitda ?? null,

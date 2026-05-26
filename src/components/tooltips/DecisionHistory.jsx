@@ -21,9 +21,9 @@ const DecisionHistory = ({ rounds = [] }) => {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const fmtNum = (v) => {
+  const fmtPct = (v) => {
     if (v === undefined || v === null || isNaN(v)) return '—';
-    return v.toLocaleString('pt-BR');
+    return v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
   };
 
   if (rounds.length === 0) {
@@ -44,7 +44,7 @@ const DecisionHistory = ({ rounds = [] }) => {
           <tr>
             <th>Rodada</th>
             <th>Preço da Cesta</th>
-            <th>Estoque Atual</th>
+            <th>Disponibilidade</th>
             <th>Receita</th>
           </tr>
         </thead>
@@ -53,7 +53,7 @@ const DecisionHistory = ({ rounds = [] }) => {
             <tr key={r.round}>
               <td>Rodada {r.round}</td>
               <td>{fmt(r.precoCesta)}</td>
-              <td>{fmtNum(r.estoqueTotal)} un.</td>
+              <td>{fmtPct(r.disponibilidade)}</td>
               <td>{fmt(r.receitaTotal)}</td>
             </tr>
           ))}
