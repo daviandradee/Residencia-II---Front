@@ -44,8 +44,8 @@ const FacilitadorDashboard = () => {
   // Definições dos tooltips para o dashboard do facilitador
   const DASH_TOOLTIPS = {
     precoCesta: {
-      metric: 'Preço Médio da Cesta',
-      formula: '(preço Perecíveis + preço Mercearia + preço Eletro + preço Hipel) / 4',
+      metric: 'Preço Cesta',
+      formula: '(preço Perecíveis + preço Mercearia + preço Eletro + preço Hipel) ',
       explanation: 'Cada empresa define margens por categoria. O preço da cesta é a soma dos 4 itens (1 de cada categoria), calculado como: custo unitário × (1 + margem%). Empresas com preço menor tendem a capturar mais demanda.',
       variables: [],
     },
@@ -342,38 +342,40 @@ const FacilitadorDashboard = () => {
           </p>
         </div>
 
-        <div className="dash-info-card">
-          <span className="dash-info-label">Sala</span>
-          <strong className="dash-info-value">{code}</strong>
-        </div>
-
-        <div className="dash-info-card">
-          <span className="dash-info-label">Rodada Atual</span>
-          <strong className="dash-info-value">{roundAtual} / {configRoom?.totalRounds || '—'}</strong>
-        </div>
-
-        {/* Status de confirmação das empresas — rodadas 1 e 2 */}
-        {roundAtual <= 2 && companies.length > 0 && (
-          <div className="dash-info-card dash-status-card">
-            <span className="dash-info-label">
-              Status das Empresas ({configuredCompanyIds.size}/{companies.length})
-            </span>
-            <div className="company-status-list">
-              {companies.map((company) => {
-                const confirmou = configuredCompanyIds.has(company.id);
-                return (
-                  <div key={company.id} className="company-status-item">
-                    <span className={`status-dot-config ${confirmou ? 'ok' : 'pending'}`} />
-                    <span className="status-name">{company.name}</span>
-                    <span className="status-badge">
-                      {confirmou ? '✓ Enviou' : '⏳ Pendente'}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="sidebar-cards-group">
+          <div className="dash-info-card">
+            <span className="dash-info-label">Sala</span>
+            <strong className="dash-info-value">{code}</strong>
           </div>
-        )}
+
+          <div className="dash-info-card">
+            <span className="dash-info-label">Rodada Atual</span>
+            <strong className="dash-info-value">{roundAtual} / {configRoom?.totalRounds || '—'}</strong>
+          </div>
+
+          {/* Status de confirmação das empresas — rodadas 1 e 2 */}
+          {roundAtual <= 2 && companies.length > 0 && (
+            <div className="dash-info-card dash-status-card">
+              <span className="dash-info-label">
+                Status das Empresas ({configuredCompanyIds.size}/{companies.length})
+              </span>
+              <div className="company-status-list">
+                {companies.map((company) => {
+                  const confirmou = configuredCompanyIds.has(company.id);
+                  return (
+                    <div key={company.id} className="company-status-item">
+                      <span className={`status-dot-config ${confirmou ? 'ok' : 'pending'}`} />
+                      <span className="status-name">{company.name}</span>
+                      <span className="status-badge">
+                        {confirmou ? '✓ Enviou' : '⏳ Pendente'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* Painel principal */}
@@ -387,12 +389,12 @@ const FacilitadorDashboard = () => {
               <div className="dash-table-header">
                 <span>Empresa</span>
                 <span className="dash-center">
-                  Preço Médio<br />da Cesta
+                  Preço <br />da Cesta
                   <InfoButton
                     inline
                     onClick={() => toggleTooltip('precoCesta')}
                     active={openTooltip === 'precoCesta'}
-                    ariaLabel="Explicar Preço Médio da Cesta"
+                    ariaLabel="Explicar Preço da Cesta"
                   />
                 </span>
                 <span className="dash-center">
