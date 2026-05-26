@@ -236,6 +236,160 @@
   color: #fff;
 }
 
+/* ── Cálculo de Pontos ── */
+.pontos-explicacao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  background: var(--color-background-light);
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.pontos-exp-bloco {
+  flex: 1;
+  min-width: 200px;
+}
+
+.pontos-exp-titulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.pontos-exp-texto {
+  font-size: 0.88rem;
+  color: var(--color-text-dark);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pontos-exp-criterios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pontos-criterio-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.pontos-criterio-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pontos-criterio-item strong {
+  font-size: 0.8rem;
+  color: var(--color-text-dark);
+}
+
+.pontos-criterio-item span:not(.pontos-criterio-icon) {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.pontos-criterio-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pontos-icon-preco  { background: #3498db; }
+.pontos-icon-disp   { background: #27ae60; }
+.pontos-icon-csat   { background: #9b59b6; }
+
+.pontos-criterio-formula {
+  background: rgba(255, 105, 10, 0.08);
+  border: 1px solid rgba(255, 105, 10, 0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-action-orange);
+}
+
+.dash-pontos-header,
+.dash-pontos-row {
+  grid-template-columns: 1.5fr repeat(5, 1fr);
+}
+
+.pontos-hint {
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+  opacity: 0.75;
+}
+
+.pontos-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.pontos-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text-dark);
+}
+
+.pontos-pos {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+.pontos-pos-first {
+  background: rgba(39, 174, 96, 0.12);
+  color: #27ae60;
+  border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.pontos-pos-last {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.25);
+}
+
+.pontos-pos-mid {
+  background: rgba(11, 90, 151, 0.08);
+  color: var(--color-primary-blue);
+  border: 1px solid rgba(11, 90, 151, 0.18);
+}
+
+.pontos-total {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-action-orange);
+}
+
+.pontos-demanda {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-primary-blue);
+}
+
 /* ── Botões de Ação do Facilitador ── */
 .dash-actions {
   margin-top: 30px;
