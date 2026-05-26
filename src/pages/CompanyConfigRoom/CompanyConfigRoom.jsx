@@ -330,39 +330,22 @@ useEffect(() => {
           </p>
         </div>
 
-        <div className={`balance-card ${saldoRestante < 0 ? 'insufficient-funds' : ''}`}>
-          <span className="balance-label">Saldo Disponível</span>
-          <strong className="balance-value">{fmt(saldoRestante)}</strong>
-          {/* Detalhamento de Gastos 
-          <div className="gasto-detalhamento">
-            <div className="gasto-item">
-              <span className="gasto-label">CAPEX</span>
-              <span className="gasto-valor">{fmt(totalCapex)}</span>
-            </div>
-            <div className="gasto-item">
-              <span className="gasto-label">Estoque</span>
-              <span className="gasto-valor">{fmt(custoEstoque)}</span>
-            </div>
-            <div className="gasto-item">
-              <span className="gasto-label">Pessoal</span>
-              <span className="gasto-valor">{fmt(custoPessoal)}</span>
-            </div>
-            <div className="gasto-item gasto-total">
-              <span className="gasto-label">Total Gastos</span>
-              <span className="gasto-valor">{fmt(totalGastos)}</span>
-            </div>
-          </div>*/}
-          <span className="balance-hint">Gasto: {fmt(totalGastos)}</span>
-          {excedente > 0 && (
-            <div className="juros-alert">
-              ⚠️ Excedente: {fmt(excedente)} → Juros de {params.juros}%: {fmt(jurosPrevistos)}
-            </div>
-          )}
-        </div>
+        <div className="sidebar-cards-group">
+          <div className={`balance-card ${saldoRestante < 0 ? 'insufficient-funds' : ''}`}>
+            <span className="balance-label">Saldo Disponível</span>
+            <strong className="balance-value">{fmt(saldoRestante)}</strong>
+            <span className="balance-hint">Gasto: {fmt(totalGastos)}</span>
+            {excedente > 0 && (
+              <div className="juros-alert">
+                ⚠️ Excedente: {fmt(excedente)} → Juros de {params.juros}%: {fmt(jurosPrevistos)}
+              </div>
+            )}
+          </div>
 
-        <div className="cesta-resumo">
-          <span className="balance-label">Preço Final da Cesta</span>
-          <strong className="balance-value">{fmt(precoCesta)}</strong>
+          <div className="cesta-resumo">
+            <span className="balance-label">Preço Final da Cesta</span>
+            <strong className="balance-value">{fmt(precoCesta)}</strong>
+          </div>
         </div>
       </aside>
 
@@ -376,23 +359,6 @@ useEffect(() => {
         <div className="config-content">
           {/* SEÇÃO 1: Gestão de Pessoas */}
           <section className="config-section">
-            <h3 className="section-subtitle">Gestão de Pessoas — Cargos</h3>
-            <div className="input-grid">
-              {CARGOS.map(cargo => (
-                <div className="input-group" key={cargo}>
-                  <label htmlFor={`cargo-${cargo}`}>{cargo}</label>
-                  <input
-                    id={`cargo-${cargo}`}
-                    name={cargo.toLowerCase()}
-                    type="text"
-                    placeholder="Nome do integrante"
-                    value={cargos[cargo.toLowerCase()] || ''}
-                    onChange={handleCargoChange}
-                  />
-                </div>
-              ))}
-            </div>
-
             <h3 className="section-subtitle" style={{ marginTop: 28 }}>Dimensionamento de Pessoal</h3>
             <p className="section-hint">Custo: {fmt(params.custoPorOperador)} por operador</p>
             <div className="input-grid">
@@ -448,6 +414,7 @@ useEffect(() => {
           {/* SEÇÃO 3: Estoque + Margens */}
           <section className="config-section">
             <h3 className="section-subtitle">Abastecimento e Comercial</h3>
+            <div className="stock-table-wrapper">
             <div className="stock-table">
               <div className="stock-header">
                 <span>Categoria</span>
@@ -545,6 +512,7 @@ useEffect(() => {
                 <span></span>
                 <span className="stock-price stock-center"><strong>{fmt(precoCesta)}</strong></span>
               </div>
+            </div>
             </div>
           </section>
 
