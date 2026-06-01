@@ -10,6 +10,7 @@ import InfoButton from '../../components/tooltips/InfoButton';
 import MetricTooltip from '../../components/tooltips/MetricTooltip';
 import ProfessorFeed from '../../components/tooltips/ProfessorFeed';
 import DecisionHistory from '../../components/tooltips/DecisionHistory';
+import EventModal from '../../components/events/EventModal';
 
 console.log('Renderizando GerenteRanking')
 
@@ -215,6 +216,10 @@ const GerenteRanking = () => {
   const [showRankingFinalModal, setShowRankingFinalModal] = useState(false);
   const roomCode = localStorage.getItem('codeRoom');
 
+  // ── Estado do modal de eventos ──
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [eventosParaModal, setEventosParaModal] = useState([]);
+
   // ── Tooltip state ──
   const [openTooltip, setOpenTooltip] = useState(null);
   const toggleTooltip = (key) => setOpenTooltip(prev => prev === key ? null : key);
@@ -297,6 +302,43 @@ const GerenteRanking = () => {
         setLoading(false);
       });
   }, [roomCode, roundAtual, companyId]);
+
+  // ── Dispara modal de eventos uma vez por rodada (só se houver eventos) ──
+  useEffect(() => {
+    if (!meuResultado) return;
+    const eventos = meuResultado.eventosAplicados;
+    if (!Array.isArray(eventos) || eventos.length === 0) return;
+
+    const storageKey = `eventModal_seen_${roomCode}_round_${roundAtual}`;
+    const alreadySeen = localStorage.getItem(storageKey);
+    if (alreadySeen) return;
+
+    // Monta array { tipo, protegido, penalidade } para o modal
+    // Nota: o backend armazena como capexBalanca (mapCapexFields em CompanyConfigRoom)
+    // e emite o tipo de evento como BALANCA_FREEZER (ConfigureRoom.jsx)
+    const capexMap = {
+      SEGURANCA: 'capexSeguranca',
+      REDES: 'capexRedes',
+      BALANCA_FREEZER: 'capexBalanca',   // tipo real emitido pelo backend
+      FREEZER: 'capexBalanca',            // alias por compatibilidade
+      SITE: 'capexSite',
+      SELF_CHECKOUT: 'capexSelfCheckout',
+      MELHORIA_CONTINUA: 'capexMelhoriaContinua',
+    };
+    const config = meuResultado.config ||
+      JSON.parse(localStorage.getItem(`cencosud_config_r${roundAtual}`) || 'null') ||
+      {};
+
+    const eventosFormatados = eventos.map((tipo) => ({
+      tipo,
+      protegido: config[capexMap[tipo]] === true,
+      penalidade: meuResultado.percentualPenalidade ?? 10,
+    }));
+
+    setEventosParaModal(eventosFormatados);
+    setShowEventModal(true);
+    localStorage.setItem(storageKey, 'true');
+  }, [meuResultado, roundAtual, roomCode]);
 
   // Socket para atualizações em tempo real
   useEffect(() => {
@@ -699,6 +741,21 @@ const GerenteRanking = () => {
 
         </div>
       </div>
+
+      {/* Modal de eventos da rodada (automático, uma vez por rodada) */}
+      {showEventModal && (
+        <EventModal
+          events={eventosParaModal}
+          companyName={
+            resultado.find((e) => e.company?.id === companyId)?.company?.name ||
+            localStorage.getItem('companyName') ||
+            ''
+          }
+          round={roundAtual}
+          isOpen={showEventModal}
+          onClose={() => setShowEventModal(false)}
+        />
+      )}
 
       <Modal
         isOpen={loading}

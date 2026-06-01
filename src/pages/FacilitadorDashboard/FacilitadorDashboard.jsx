@@ -9,6 +9,7 @@ import GraficoDemandaEmpresas from '../../components/GraficoDemandaEmpresas';
 import { useToast } from '../../components/Toast.jsx';
 import InfoButton from '../../components/tooltips/InfoButton';
 import MetricTooltip from '../../components/tooltips/MetricTooltip';
+import EventModal from '../../components/events/EventModal';
 
 const FacilitadorDashboard = () => {
   const { code } = useParams();
@@ -40,6 +41,35 @@ const FacilitadorDashboard = () => {
   // ── Tooltip state (dashboard) ──
   const [openTooltip, setOpenTooltip] = useState(null);
   const toggleTooltip = (key) => setOpenTooltip(prev => prev === key ? null : key);
+
+  // ── Estado do modal de eventos (Facilitador) ──
+  const [selectedCompanyEvents, setSelectedCompanyEvents] = useState(null);
+
+  const CAPEX_MAP = {
+    SEGURANCA: 'capexSeguranca',
+    REDES: 'capexRedes',
+    BALANCA_FREEZER: 'capexBalanca',   // tipo real emitido pelo backend
+    FREEZER: 'capexBalanca',            // alias por compatibilidade
+    SITE: 'capexSite',
+    SELF_CHECKOUT: 'capexSelfCheckout',
+    MELHORIA_CONTINUA: 'capexMelhoriaContinua',
+  };
+
+  const openEventModal = (empresa) => {
+    // O backend retorna company.configs (array filtrado pela rodada, ver RoomsController L275-294)
+    // O objeto de config real é o primeiro elemento desse array
+    const config = empresa.company?.configs?.[0] || {};
+    const eventos = (empresa.eventosAplicados || []).map((tipo) => ({
+      tipo,
+      protegido: config[CAPEX_MAP[tipo]] === true,
+      penalidade: empresa.percentualPenalidade ?? 10,
+    }));
+    setSelectedCompanyEvents({
+      events: eventos,
+      companyName: empresa.company?.name || empresa.nome || '',
+      round: roundAtual,
+    });
+  };
 
   // Definições dos tooltips para o dashboard do facilitador
   const DASH_TOOLTIPS = {
@@ -430,7 +460,20 @@ const FacilitadorDashboard = () => {
               )}
               {resultado.map((empresa, index) => (
                 <div className="dash-table-row" key={empresa.id || empresa.name || index}>
-                  <span className="dash-empresa-name">{empresa.company.name}</span>
+                  <span className="dash-empresa-name">
+                    {empresa.company.name}
+                    {/* Badge de evento ⚡ */}
+                    {empresa.eventosAplicados?.length > 0 && (
+                      <button
+                        className="event-badge"
+                        onClick={() => openEventModal(empresa)}
+                        title={`Ver ${empresa.eventosAplicados.length} evento(s) desta rodada`}
+                        aria-label={`Ver eventos de ${empresa.company.name}`}
+                      >
+                        ⚡ {empresa.eventosAplicados.length}
+                      </button>
+                    )}
+                  </span>
                   <span className="dash-center">{fmt(empresa.precoMedioCesta)}</span>
                   <span className="dash-center">{fmtPercent(empresa.disponibilidade)}</span>
                   <span className="dash-center">{fmtPercent(empresa.csat)}</span>
@@ -714,6 +757,18 @@ const FacilitadorDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de eventos do Facilitador (ao clicar no badge) */}
+      {selectedCompanyEvents && (
+        <EventModal
+          events={selectedCompanyEvents.events}
+          companyName={selectedCompanyEvents.companyName}
+          round={selectedCompanyEvents.round}
+          isOpen={true}
+          isFacilitador={true}
+          onClose={() => setSelectedCompanyEvents(null)}
+        />
+      )}
 
       {/* Modal de loading ao carregar dados */}
       <Modal
