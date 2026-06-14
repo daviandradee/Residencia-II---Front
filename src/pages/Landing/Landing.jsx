@@ -36,6 +36,9 @@ const LandingPage = () => {
               <a href="#caracteristicas" onClick={(e) => handleAnchor(e, 'caracteristicas')}>CARACTERÍSTICAS</a>
             </li>
             <li>
+              <Link to="/aprender">COMO JOGAR</Link>
+            </li>
+            <li>
               <Link to="/lobby" className="btn-primary">
                 COMEÇAR AGORA
               </Link>
