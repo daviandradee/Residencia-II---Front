@@ -1,9 +1,10 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import ScrollToTop from "./components/ScrollToTop";
 import { ToastProvider } from './components/Toast';
+import Chat from './components/Chat/Chat';
 
-// Importe suas páginas (verifique se os nomes dos arquivos estão corretos)
 import Home from './pages/Landing/Landing';
 import Lobby from './pages/Lobby/Lobby';
 import ConfiguracaoSala from './pages/ConfigureRoom/ConfigureRoom';
@@ -16,24 +17,40 @@ import GerenteRanking from './pages/GerenteRanking/GerenteRanking';
 import FacilitadorRanking from './pages/FacilitadorRanking/FacilitadorRanking';
 import Tutorial from './pages/Tutorial/Tutorial';
 
+const HIDDEN_ROUTES = ['/', '/lobby', '/aprender', '/configuracaodesala'];
+
+function ChatOverlay() {
+  const { pathname } = useLocation();
+  const [roomConfig, setRoomConfig] = useState(null);
+
+  const hidden = HIDDEN_ROUTES.includes(pathname) || pathname.startsWith('/waitingroom');
+
+  useEffect(() => {
+    if (hidden) return;
+    const code = localStorage.getItem('codeRoom');
+    if (!code) return;
+
+    const API = import.meta.env.VITE_API_URL || '';
+    fetch(`${API}/rooms/${code}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setRoomConfig(data); })
+      .catch(() => {});
+  }, [pathname, hidden]);
+
+  if (hidden || !roomConfig) return null;
+  return <Chat roomConfig={roomConfig} />;
+}
+
 function App() {
   return (
     <ToastProvider>
       <BrowserRouter>
-        
-        <ScrollToTop /> 
-        
+        <ScrollToTop />
         <Routes>
-          {/* Rota da Landing Page (Raiz) */}
           <Route path="/" element={<Home />} />
-          
-          {/* Rota da tela de PIN (Lobby) */}
           <Route path="/lobby" element={<Lobby />} />
-          {/* Rota do tutorial / como jogar */}
           <Route path="/aprender" element={<Tutorial />} />
-          {/* Rota para configuração de sala */}
           <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
-          {/* Rota para sala de espera */}
           <Route path="/waitingroom/:code" element={<WaitingRoom />} />
           <Route path="/gerente-quiz/:code" element={<GerenteQuizTime />} />
           <Route path="/facilitador-quiz/:code" element={<FacilitadorQuizTime />} />
@@ -42,6 +59,7 @@ function App() {
           <Route path="/ranking" element={<GerenteRanking />} />
           <Route path="/ranking-final" element={<FacilitadorRanking />} />
         </Routes>
+        <ChatOverlay />
       </BrowserRouter>
     </ToastProvider>
   );
