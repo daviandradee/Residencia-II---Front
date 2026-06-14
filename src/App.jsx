@@ -14,6 +14,7 @@ import GerenteQuizTime from './pages/GerenteQuizTime/GerenteQuizTime';
 import FacilitadorQuizTime from './pages/FacilitadorQuizTime/FacilitadorQuizTime';
 import GerenteRanking from './pages/GerenteRanking/GerenteRanking';
 import FacilitadorRanking from './pages/FacilitadorRanking/FacilitadorRanking';
+import Tutorial from './pages/Tutorial/Tutorial';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
           
           {/* Rota da tela de PIN (Lobby) */}
           <Route path="/lobby" element={<Lobby />} />
+          {/* Rota do tutorial / como jogar */}
+          <Route path="/aprender" element={<Tutorial />} />
           {/* Rota para configuração de sala */}
           <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
           {/* Rota para sala de espera */}
