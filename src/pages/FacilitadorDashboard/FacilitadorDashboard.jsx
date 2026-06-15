@@ -5,7 +5,6 @@ import '../../assets/css/RoomConfig.css';
 import './FacilitadorDashboard.css';
 import { io } from 'socket.io-client';
 import Modal from '../../components/Modal';
-import GraficoDemandaEmpresas from '../../components/GraficoDemandaEmpresas';
 import { useToast } from '../../components/Toast.jsx';
 import InfoButton from '../../components/tooltips/InfoButton';
 import MetricTooltip from '../../components/tooltips/MetricTooltip';
@@ -25,7 +24,6 @@ const FacilitadorDashboard = () => {
   const [roundAtual, setRoundAtual] = useState(1);
   const [resultado, setResultado] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [historicoDemanda, setHistoricoDemanda] = useState([]);
 
   // ── States de controle de UI ──
   const [showModalStart, setShowModalStart] = useState(false);
@@ -232,53 +230,6 @@ const FacilitadorDashboard = () => {
     carregarResultadoRodada(roundAtual);
   }, [code, roundAtual]);
 
-  // ── Histórico de demanda para o gráfico de evolução ──
-  useEffect(() => {
-    const carregarHistorico = async () => {
-      const novoHistorico = [];
-
-      // Faz um loop da rodada 1 até a rodada atual
-      for (let r = 1; r <= roundAtual; r++) {
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/rooms/${code}/resultado/${r}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-facilitator-token': `${facilitadorToken}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-
-            // Monta o objeto no formato que o Recharts entende
-            const pontoRodada = { rodada: `Rodada ${r}` };
-
-            data.forEach((empresa) => {
-              const nome = empresa.company?.name || `Empresa ${empresa.id}`;
-              const valorDemanda = (empresa.percentualDemanda || 0) * 100;
-              pontoRodada[nome] = parseFloat(valorDemanda.toFixed(1));
-            });
-
-            novoHistorico.push(pontoRodada);
-          }
-        } catch (err) {
-          console.error(`Erro ao buscar histórico da rodada ${r}:`, err);
-        }
-      }
-
-      // Salva o histórico completo no state
-      setHistoricoDemanda(novoHistorico);
-    };
-
-    if (code && facilitadorToken) {
-      carregarHistorico();
-    }
-  }, [code, roundAtual, facilitadorToken]);
-
   // ── Handler: Próxima Rodada ──
   const handleNextRound = async () => {
     setIsLoadingNextRound(true);
@@ -414,7 +365,6 @@ const FacilitadorDashboard = () => {
           {/* SEÇÃO 1: Resultados das Empresas */}
           <section className="config-section">
             <h3 className="section-subtitle">Resultados das Empresas</h3>
-            <GraficoDemandaEmpresas historicoDados={historicoDemanda} />
             <div className="dash-table">
               <div className="dash-table-header">
                 <span>Empresa</span>
