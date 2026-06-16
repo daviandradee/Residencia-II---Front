@@ -54,9 +54,7 @@ const FacilitadorDashboard = () => {
   };
 
   const openEventModal = (empresa) => {
-    // O backend retorna company.configs (array filtrado pela rodada, ver RoomsController L275-294)
-    // O objeto de config real é o primeiro elemento desse array
-    const config = empresa.company?.configs?.[0] || {};
+    const config = empresa.capexAcumulado || empresa.company?.configs?.[0] || {};
     const eventos = (empresa.eventosAplicados || []).map((tipo) => ({
       tipo,
       protegido: config[CAPEX_MAP[tipo]] === true,
