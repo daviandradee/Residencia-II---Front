@@ -290,6 +290,13 @@ useEffect(() => {
         round,
         precoCesta,
         capexNovos: capexNovosLabels || 'Nenhum',
+        // campos booleanos usados pelo GerenteRanking para verificar proteção
+        capexSeguranca: payload.capexSeguranca || capexJaComprado.capexSegurancaValor || false,
+        capexBalanca: payload.capexBalanca || capexJaComprado.capexBalancaFreezerValor || false,
+        capexRedes: payload.capexRedes || capexJaComprado.capexRedesValor || false,
+        capexSite: payload.capexSite || capexJaComprado.capexSiteValor || false,
+        capexSelfCheckout: payload.capexSelfCheckout || capexJaComprado.capexSelfCheckoutValor || false,
+        capexMelhoriaContinua: payload.capexMelhoriaContinua || capexJaComprado.capexMelhoriaContinuaValor || false,
       };
       localStorage.setItem(`cencosud_config_r${round}`, JSON.stringify(snapshot));
 
