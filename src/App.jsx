@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import localStorage from './services/storage';
 import ScrollToTop from "./components/ScrollToTop";
 import { ToastProvider } from './components/Toast';
 import Chat from './components/Chat/Chat';
@@ -11,8 +12,9 @@ import ConfiguracaoSala from './pages/ConfigureRoom/ConfigureRoom';
 import WaitingRoom from './pages/WaitingRoom/WaitingRoom';
 import CompanyConfigRoom from './pages/CompanyConfigRoom/CompanyConfigRoom';
 import FacilitadorDashboard from './pages/FacilitadorDashboard/FacilitadorDashboard';
-import GerenteQuizTime from './pages/GerenteQuizTime/GerenteQuizTime';
-import FacilitadorQuizTime from './pages/FacilitadorQuizTime/FacilitadorQuizTime';
+import QuizPlayer from './pages/QuizPlayer/QuizPlayer'
+import QuizFacilitator from './pages/QuizFacilitator/QuizFacilitator'
+import Categories from './pages/Categories/Categories'
 import GerenteRanking from './pages/GerenteRanking/GerenteRanking';
 import FacilitadorRanking from './pages/FacilitadorRanking/FacilitadorRanking';
 import Tutorial from './pages/Tutorial/Tutorial';
@@ -52,8 +54,9 @@ function App() {
           <Route path="/aprender" element={<Tutorial />} />
           <Route path="/configuracaodesala" element={<ConfiguracaoSala />} />
           <Route path="/waitingroom/:code" element={<WaitingRoom />} />
-          <Route path="/gerente-quiz/:code" element={<GerenteQuizTime />} />
-          <Route path="/facilitador-quiz/:code" element={<FacilitadorQuizTime />} />
+          <Route path="/gerente-quiz/:code" element={<QuizPlayer />} />
+          <Route path="/facilitador-quiz/:code" element={<QuizFacilitator />} />
+          <Route path="/categories" element={<Categories />} />
           <Route path="/config/:companyId" element={<CompanyConfigRoom />} />
           <Route path="/facilitador/:code" element={<FacilitadorDashboard />} />
           <Route path="/ranking" element={<GerenteRanking />} />

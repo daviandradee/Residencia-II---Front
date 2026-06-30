@@ -241,3 +241,68 @@
     justify-content: center;
   }
 }
+
+/* Checkbox Premium para o Quiz */
+.checkbox-premium-container {
+  display: flex;
+  align-items: center;
+  margin-top: 14px;
+  grid-column: span 3;
+}
+
+.checkbox-premium-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  user-select: none;
+  background: var(--color-background-light);
+  padding: 12px 20px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.checkbox-premium-label:hover {
+  border-color: var(--color-action-orange);
+  background: rgba(255, 105, 10, 0.03);
+}
+
+.checkbox-premium-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  outline: none;
+  margin: 0;
+}
+
+.checkbox-premium-input:checked {
+  background-color: var(--color-action-orange);
+  border-color: var(--color-action-orange);
+}
+
+.checkbox-premium-input:checked::after {
+  content: "✓";
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.checkbox-premium-text {
+  font-family: inherit;
+}
+

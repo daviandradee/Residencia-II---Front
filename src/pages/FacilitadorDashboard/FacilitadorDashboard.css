@@ -450,3 +450,119 @@
     width: 100%;
   }
 }
+
+/* ── Timer de Rodada ── */
+.timer-control-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.timer-display-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.timer-clock-display {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 1px;
+}
+
+.timer-clock-display.timer-active {
+  color: #2ecc71;
+  text-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+}
+
+.timer-clock-display.timer-paused {
+  color: #bdc3c7;
+}
+
+.timer-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #e74c3c;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  animation: pulse 1.5s infinite;
+}
+
+.timer-input-duration {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.timer-duration-field {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  padding: 4px 6px;
+  outline: none;
+  text-align: center;
+  font-weight: 600;
+}
+
+.timer-duration-field:focus {
+  border-color: #3498db;
+}
+
+.timer-buttons-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-timer-ctrl {
+  flex: 1;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.btn-timer-ctrl.btn-play {
+  background: #2ecc71;
+}
+
+.btn-timer-ctrl.btn-play:hover {
+  background: #27ae60;
+}
+
+.btn-timer-ctrl.btn-pause {
+  background: #f39c12;
+}
+
+.btn-timer-ctrl.btn-pause:hover {
+  background: #d35400;
+}
+
+.btn-timer-ctrl.btn-adjust {
+  background: rgba(255, 255, 255, 0.15);
+  max-width: 55px;
+}
+
+.btn-timer-ctrl.btn-adjust:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-timer-ctrl:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
