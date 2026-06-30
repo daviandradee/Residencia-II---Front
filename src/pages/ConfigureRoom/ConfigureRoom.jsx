@@ -3,6 +3,7 @@ import { data, useNavigate } from 'react-router-dom';
 import "../../index.css";
 import './ConfigureRoom.css';
 import { createRoom } from '../../services/createRoomService';
+import localStorage from '../../services/storage';
 import Modal from '../../components/Modal';
 import ErrorModal from '../../components/ErroModal';
 import { useToast } from '../../components/Toast.jsx';
@@ -20,6 +21,7 @@ const ConfiguracaoSala = () => {
     caixa: 700000,
     juros: 12,
     totalRounds: 4,
+    hasQuiz: true,
     quebrasPereciveis: 2,
     quebrasMercearia: 1.5,
     quebrasEletro: 0,
@@ -241,7 +243,7 @@ const ConfiguracaoSala = () => {
       console.log("Sala", data);
       
       localStorage.setItem('facilitadorToken', data.room.facilitatorToken);
-      navigate(`/waitingroom/${data.room.code}`);
+      navigate(`/waitingroom/${data.room.code}?token=${data.room.facilitatorToken}`);
     } catch (error) {
       setErrorMessage(error.message || "Não foi possível criar a sala. Verifique a conexão e tente novamente.");
       setIsErrorModalOpen(true); 
@@ -284,6 +286,18 @@ const ConfiguracaoSala = () => {
                 <div className="input-group">
                   <label>Total de Rounds</label>
                   <input type="number" name="totalRounds" value={config.totalRounds} onChange={handleChange} placeholder="0" />
+                </div>
+                <div className="checkbox-premium-container">
+                  <label className="checkbox-premium-label">
+                    <input
+                      type="checkbox"
+                      name="hasQuiz"
+                      checked={config.hasQuiz}
+                      onChange={(e) => setConfig({ ...config, hasQuiz: e.target.checked })}
+                      className="checkbox-premium-input"
+                    />
+                    <span className="checkbox-premium-text">Incluir Quiz Interativo</span>
+                  </label>
                 </div>
               </div>
             </section>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import localStorage from '../../services/storage';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../../index.css';
 import '../../assets/css/RoomConfig.css';
@@ -32,6 +33,10 @@ const FacilitadorDashboard = () => {
   const [isLoadingFinish, setIsLoadingFinish] = useState(false);
   const [configuredCompanyIds, setConfiguredCompanyIds] = useState(new Set());
   const [gameFinished, setGameFinished] = useState(false);
+
+  // States de Timer de Rodada
+  const [timerState, setTimerState] = useState({ timeLeft: 1200, isActive: false, currentRound: 1, totalRounds: 4 });
+  const [initialTimeInput, setInitialTimeInput] = useState(20); // 20 minutos default
 
   const facilitadorToken = localStorage.getItem('facilitadorToken');
   const roundAtualRef = useRef(roundAtual);
@@ -136,6 +141,15 @@ const FacilitadorDashboard = () => {
       }
     });
 
+    socket.on('server:timer-update', (data) => {
+      setTimerState(data);
+    });
+
+    socket.on('server:error', (data) => {
+      console.error('[Socket Error] Recebido erro do servidor:', data);
+      showToast(`Erro do Servidor: ${data.message || 'Falha na operação'}`, 'error');
+    });
+
     // ── Re-sincronização após reconexão ──
     socket.on('connect', () => {
       console.log('Socket reconectado — sincronizando estado...')
@@ -165,6 +179,8 @@ const FacilitadorDashboard = () => {
       socket.off('disconnect');
       socket.off('round_advanced');
       socket.off('game_finished');
+      socket.off('server:timer-update');
+      socket.off('server:error');
       socket.disconnect();
     };
   }, [code]);
@@ -298,6 +314,66 @@ const FacilitadorDashboard = () => {
     }
   };
 
+  // ── Handlers do Timer de Rodada ──
+  const formatTime = (seconds) => {
+    if (seconds === undefined || seconds === null || isNaN(seconds)) return '00:00';
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const handleToggleTimer = () => {
+    const socket = socketRef.current;
+    if (!socket) {
+      console.error('[Timer] Socket ref está nulo!');
+      showToast('Erro: Socket não inicializado.', 'error');
+      return;
+    }
+    if (!socket.connected) {
+      console.error('[Timer] Socket não está conectado!');
+      showToast('Erro: Socket desconectado. Aguarde reconexão.', 'warning');
+      return;
+    }
+
+    const token = localStorage.getItem('facilitadorToken');
+    console.log('[Timer] Clicou em iniciar/pausar timer. Token:', token ? token.substring(0, 8) + '...' : 'null', 'Room:', code);
+
+    if (timerState.isActive) {
+      console.log('[Timer] Emitindo facilitator:pause-timer...');
+      socket.emit('facilitator:pause-timer', { roomCode: code, facilitatorToken: token });
+    } else {
+      const durationSeconds = (parseInt(initialTimeInput) || 20) * 60;
+      console.log('[Timer] Emitindo facilitator:start-timer com duração (segundos):', durationSeconds);
+      socket.emit('facilitator:start-timer', {
+        roomCode: code,
+        duration: durationSeconds,
+        facilitatorToken: token
+      });
+    }
+  };
+
+  const handleAddTime = () => {
+    const socket = socketRef.current;
+    if (!socket || !socket.connected) {
+      console.error('[Timer] Socket indisponível para adicionar tempo');
+      return;
+    }
+    const token = localStorage.getItem('facilitadorToken');
+    console.log('[Timer] Emitindo facilitator:add-time...');
+    socket.emit('facilitator:add-time', { roomCode: code, facilitatorToken: token, amount: 60 });
+  };
+
+  const handleSubtractTime = () => {
+    const socket = socketRef.current;
+    if (!socket || !socket.connected) {
+      console.error('[Timer] Socket indisponível para subtrair tempo');
+      return;
+    }
+    const token = localStorage.getItem('facilitadorToken');
+    console.log('[Timer] Emitindo facilitator:subtract-time...');
+    socket.emit('facilitator:subtract-time', { roomCode: code, facilitatorToken: token, amount: 60 });
+  };
+
   // ── Formatadores ──
   const fmt = (v) => {
     if (v === undefined || v === null || isNaN(v)) return 'R$ 0,00';
@@ -308,6 +384,8 @@ const FacilitadorDashboard = () => {
     if (v === undefined || v === null || isNaN(v)) return '0%';
     return v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + '%';
   };
+
+  const isPaused = !timerState.isActive && timerState.timeLeft < timerState.duration && timerState.timeLeft > 0;
 
   return (
     <div className="config-container">
@@ -330,6 +408,66 @@ const FacilitadorDashboard = () => {
           <div className="dash-info-card">
             <span className="dash-info-label">Rodada Atual</span>
             <strong className="dash-info-value">{roundAtual} / {configRoom?.totalRounds || '—'}</strong>
+          </div>
+
+          {/* Painel do Timer de Rodada */}
+          <div className="dash-info-card timer-control-card">
+            <span className="dash-info-label">Tempo da Rodada</span>
+            <div className="timer-display-container">
+              <strong className={`timer-clock-display ${timerState.isActive ? 'timer-active' : 'timer-paused'}`}>
+                {formatTime(timerState.timeLeft)}
+              </strong>
+              {!timerState.isActive && <span className="timer-status-badge">PAUSADO</span>}
+            </div>
+
+            <div className="timer-input-duration">
+              <label htmlFor="timer-duration-input">Duração (min):</label>
+              <input
+                id="timer-duration-input"
+                type="number"
+                min="1"
+                max="60"
+                value={initialTimeInput}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setInitialTimeInput('');
+                    return;
+                  }
+                  const num = parseInt(val) || 0;
+                  setInitialTimeInput(Math.min(60, Math.max(1, num)));
+                }}
+                disabled={timerState.isActive || gameFinished}
+                className="timer-duration-field"
+              />
+            </div>
+
+            <div className="timer-buttons-row">
+              <button
+                className={`btn-timer-ctrl ${timerState.isActive ? 'btn-pause' : 'btn-play'}`}
+                onClick={handleToggleTimer}
+                disabled={gameFinished}
+                title={timerState.isActive ? 'Pausar' : isPaused ? 'Retomar' : 'Iniciar'}
+              >
+                {timerState.isActive ? '⏸️ Pausar' : isPaused ? '▶️ Retomar' : '▶️ Iniciar'}
+              </button>
+              <button
+                className="btn-timer-ctrl btn-adjust"
+                onClick={handleAddTime}
+                disabled={gameFinished}
+                title="+1 Minuto"
+              >
+                +1 min
+              </button>
+              <button
+                className="btn-timer-ctrl btn-adjust"
+                onClick={handleSubtractTime}
+                disabled={gameFinished}
+                title="-1 Minuto"
+              >
+                -1 min
+              </button>
+            </div>
           </div>
 
           {/* Status de confirmação das empresas — rodadas 1 e 2 */}

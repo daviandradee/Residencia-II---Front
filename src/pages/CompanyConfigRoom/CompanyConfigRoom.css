@@ -376,3 +376,97 @@
     min-width: unset;
   }
 }
+
+/* ── Timer do Gerente ── */
+.manager-timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-card-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.manager-timer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.manager-timer-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.manager-timer-clock-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.manager-timer-clock {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1;
+  user-select: none;
+  background: transparent !important;
+}
+
+.manager-timer-clock.timer-green {
+  color: #2ecc71;
+}
+
+.manager-timer-clock.timer-yellow {
+  color: #f1c40f;
+}
+
+.manager-timer-clock.timer-red {
+  color: #e74c3c;
+}
+
+.manager-timer-clock.timer-paused {
+  color: #7f8c8d;
+}
+
+.manager-timer-paused-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #e74c3c;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  animation: pulse 1.5s infinite;
+}
+
+.manager-round-details {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-blue);
+  background: rgba(26, 82, 118, 0.08);
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+/* Animação de piscar para alerta de tempo (<30s) */
+.timer-flash {
+  animation: flash-red 0.5s infinite alternate;
+}
+
+@keyframes flash-red {
+  from { opacity: 1; }
+  to { opacity: 0.2; }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}

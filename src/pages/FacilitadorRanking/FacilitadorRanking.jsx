@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import localStorage from '../../services/storage';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../../index.css';
 import './FacilitadorRanking.css';

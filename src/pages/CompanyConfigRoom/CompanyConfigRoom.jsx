@@ -1,4 +1,5 @@
 import Modal from '../../components/Modal';
+import localStorage from '../../services/storage';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCompanySettings, saveCompanySettings, getCompanyLatestConfig } from '../../services/CompanyService';
@@ -30,6 +31,10 @@ const CompanyConfigRoom = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState('');
   const [socket, setSocket] = useState(null);
+
+  // Estado do Timer de Rodada
+  const [timerState, setTimerState] = useState({ timeLeft: 1200, isActive: false, currentRound: 1, totalRounds: 4 });
+
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL);
     setSocket(newSocket);
@@ -44,10 +49,25 @@ const CompanyConfigRoom = () => {
       }, 2000);
     });
 
+    newSocket.on('server:timer-update', (data) => {
+      setTimerState(data);
+    });
+
+    newSocket.on('round_advanced', (data) => {
+      console.log('Rodada avançada!', data);
+      window.location.reload();
+    });
+
+    newSocket.on('game_finished', (data) => {
+      localStorage.setItem('resultadoFinal', JSON.stringify(data));
+      localStorage.setItem('codeRoom', code);
+      navigate('/ranking-final');
+    });
+
     return () => {
       newSocket.disconnect();
     };
-  }, [navigate]);  // ✅ NOVO
+  }, [navigate, code]);
 
   const { companyId } = useParams();
 
@@ -313,7 +333,21 @@ useEffect(() => {
     }
   };
 
-// Função para formatar percentual com até 2 casas decimais
+  const formatTime = (seconds) => {
+    if (seconds === undefined || seconds === null || isNaN(seconds)) return '00:00';
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const getTimerClass = () => {
+    if (!timerState.isActive) return 'timer-paused';
+    if (timerState.timeLeft <= 30) return 'timer-red timer-flash';
+    if (timerState.timeLeft <= 120) return 'timer-red';
+    if (timerState.timeLeft <= 300) return 'timer-yellow';
+    return 'timer-green';
+  };
+
 
   const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const fmtPercent = (value) => {
@@ -363,7 +397,21 @@ useEffect(() => {
 
       {/* Painel principal */}
       <div className="config-main">
-        
+        {/* Timer de Rodada */}
+        <div className="manager-timer-header">
+          <div className="manager-timer-details">
+            <span className="manager-timer-label">Tempo Restante da Rodada</span>
+            <div className="manager-timer-clock-row">
+              <strong className={`manager-timer-clock ${getTimerClass()}`}>
+                {formatTime(timerState.timeLeft)}
+              </strong>
+              {!timerState.isActive && <span className="manager-timer-paused-label">PAUSADO</span>}
+            </div>
+          </div>
+          <div className="manager-round-details">
+            <span>Rodada {timerState.currentRound} de {timerState.totalRounds}</span>
+          </div>
+        </div>
 
         {loading && <div className="status-message loading">Carregando dados...</div>}
         {error && <div className="status-message error">Erro: {error}</div>}

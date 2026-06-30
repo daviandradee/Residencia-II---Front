@@ -1,6 +1,7 @@
 import React, { /*use, */ useState } from 'react';
 import logoCencosud from '../../assets/images/cencosud.svg'; 
 import { Link } from 'react-router-dom';
+import localStorage from '../../services/storage';
 import { useNavigate } from 'react-router-dom';
 
 import './lobby.css'; 
@@ -27,7 +28,7 @@ const [errorMessage, setErrorMessage] = useState('');
       localStorage.setItem('companyId', data.company.id);
       localStorage.setItem('codeRoom', pin);
       console.log('Company ID armazenado:', localStorage.getItem('companyId'));
-      navigate(`/waitingroom/${pin}`);
+      navigate(`/waitingroom/${pin}?companyId=${data.company.id}`);
     } catch (err) {
       console.error("Erro ao entrar na sala:", err);
     

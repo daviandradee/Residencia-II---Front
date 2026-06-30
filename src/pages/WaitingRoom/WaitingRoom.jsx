@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import localStorage from '../../services/storage'
 import { io } from 'socket.io-client'
 import '../../index.css'
 import './WaitingRoom.css'
@@ -47,11 +48,16 @@ const WaitingRoom = () => {
       setCompanies(updatedCompanies)
     })
 
-    socket.on('game_started', () => {
+    socket.on('game_started', (data) => {
+      const hasQuiz = data && data.hasQuiz !== undefined ? data.hasQuiz : true
       if (companyId !== null && facilitadorToken === null) {
         setTimeout(() => {
           showToast('O jogo começou! Redirecionando...', 'success')
-          navigate(`/gerente-quiz/${code}`)
+          if (hasQuiz) {
+            navigate(`/gerente-quiz/${code}?companyId=${companyId}`)
+          } else {
+            navigate(`/config/${companyId}`)
+          }
         }, 1500)
       }
     })
@@ -76,11 +82,20 @@ const WaitingRoom = () => {
   const handleStartGame = async () => {
     setIsLoading(true)
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}/start`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${roomCode}/start`, {
         method: 'PATCH',
         headers: { 'x-facilitator-token': facilitadorToken },
       })
-      navigate(`/facilitador-quiz/${roomCode}`)
+      if (!response.ok) {
+        throw new Error('Falha ao iniciar o jogo no servidor')
+      }
+      const data = await response.json()
+      const hasQuiz = data.room && data.room.hasQuiz !== undefined ? data.room.hasQuiz : true
+      if (hasQuiz) {
+        navigate(`/facilitador-quiz/${roomCode}?token=${facilitadorToken}`)
+      } else {
+        navigate(`/facilitador/${roomCode}?token=${facilitadorToken}`)
+      }
     } catch (error) {
       console.error('Erro ao iniciar jogo:', error)
       setShowModalStart(false)
