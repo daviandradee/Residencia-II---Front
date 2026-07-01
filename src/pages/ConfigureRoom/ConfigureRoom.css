@@ -247,7 +247,7 @@
   display: flex;
   align-items: center;
   margin-top: 14px;
-  grid-column: span 3;
+  grid-column: 1 / -1;
 }
 
 .checkbox-premium-label {
